@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BarberShop {
+  id            String   @id @default(uuid())
+  name          String
+  phone         String
+  email         String   @unique
+  services      String[]
+  address       String
+  image         String
+  password_hash String
+  longitude     Float?
+  latitude      Float?
+  opening_hours String[]
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  barbers      Barber[]
+  appointments Appointment[]
+
+  @@map("barber_shops")
+}
+
+model Barber {
+  id            String   @id @default(uuid())
+  name          String
+  phone         String
+  email         String   @unique
+  services      String[]
+  specialties   String[]
+  price         Decimal
+  avatar        String
+  working_days  String[]
+  working_hours String[]
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  barber_shop    BarberShop?   @relation(fields: [barber_shop_id], references: [id])
+  barber_shop_id String?
+  appointments   Appointment[]
+
+  @@map("barbers")
+}
+
+model Users {
+  id         String   @id @default(uuid())
+  name       String
+  phone      String
+  email      String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@map("users")
+}
+
+model Appointment {
+  id             String   @id @default(uuid())
+  user_id        String
+  barber_id      String
+  barber_shop_id String
+  service        String
+  price          Decimal
+  date           DateTime
+  status         Status   @default(PENDING)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  user        Users      @relation(fields: [user_id], references: [id])
+  barber      Barber     @relation(fields: [barber_id], references: [id])
+  barber_shop BarberShop @relation(fields: [barber_shop_id], references: [id])
+
+  @@map("appointments")
+}
+
+enum Status {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELED
+}
