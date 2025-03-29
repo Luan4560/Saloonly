@@ -28,13 +28,13 @@ model Salon {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  barbers      Barber[]
+  collaborators      Collaborator[]
   appointments Appointment[]
 
   @@map("barber_shops")
 }
 
-model Barber {
+model Collaborator {
   id            String   @id @default(uuid())
   name          String
   phone         String
@@ -52,7 +52,7 @@ model Barber {
   barber_shop_id String?
   appointments   Appointment[]
 
-  @@map("barbers")
+  @@map("collaborators")
 }
 
 model Users {
@@ -81,7 +81,7 @@ model Appointment {
   updated_at     DateTime @updatedAt
 
   user        Users      @relation(fields: [user_id], references: [id])
-  barber      Barber     @relation(fields: [barber_id], references: [id])
+  collaborator  Collaborator     @relation(fields: [barber_id], references: [id])
   barber_shop Salon @relation(fields: [barber_shop_id], references: [id])
 
   @@map("appointments")
