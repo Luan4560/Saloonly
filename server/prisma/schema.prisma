@@ -13,7 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model BarberShop {
+model Salon {
   id            String   @id @default(uuid())
   name          String
   phone         String
@@ -22,9 +22,9 @@ model BarberShop {
   address       String
   image         String
   password_hash String
-  longitude     Float?
   latitude      Float?
-  opening_hours String[]
+  longitude     Float?
+  opening_hours Json
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
@@ -48,7 +48,7 @@ model Barber {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  barber_shop    BarberShop?   @relation(fields: [barber_shop_id], references: [id])
+  barber_shop    Salon?   @relation(fields: [barber_shop_id], references: [id])
   barber_shop_id String?
   appointments   Appointment[]
 
@@ -82,7 +82,7 @@ model Appointment {
 
   user        Users      @relation(fields: [user_id], references: [id])
   barber      Barber     @relation(fields: [barber_id], references: [id])
-  barber_shop BarberShop @relation(fields: [barber_shop_id], references: [id])
+  barber_shop Salon @relation(fields: [barber_shop_id], references: [id])
 
   @@map("appointments")
 }
