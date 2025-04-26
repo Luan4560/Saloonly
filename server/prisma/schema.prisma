@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -16,41 +10,47 @@ datasource db {
 model Salon {
   id            String   @id @default(uuid())
   name          String
-  phone         String
+  phone         String   @unique
+  description   String?
   email         String   @unique
-  services      String[]
   address       String
   image         String
   password_hash String
+  salt          String?
   latitude      Float?
   longitude     Float?
   opening_hours Json
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  collaborators      Collaborator[]
-  appointments Appointment[]
+  collaborators Collaborator[]
+  services      Services[]
+  appointments  Appointment[]
+  users         Users[]
 
+  @@index([name])
   @@map("barber_shops")
 }
 
 model Collaborator {
-  id            String   @id @default(uuid())
+  id            String      @id @default(uuid())
   name          String
   phone         String
-  email         String   @unique
-  services      String[]
-  specialties   String[]
+  email         String      @unique
+  specialties   Specialties
   price         Decimal
   avatar        String
-  working_days  String[]
+  working_days  WorkingDays
   working_hours String[]
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  role          Role        @default(COLLABORATOR)
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
 
-  barber_shop    Salon?   @relation(fields: [barber_shop_id], references: [id])
+  barber_shop    Salon?        @relation(fields: [barber_shop_id], references: [id])
   barber_shop_id String?
   appointments   Appointment[]
+  Services       Services?     @relation(fields: [servicesId], references: [id])
+  servicesId     String?
 
   @@map("collaborators")
 }
@@ -64,6 +64,8 @@ model Users {
   updated_at DateTime @updatedAt
 
   appointments Appointment[]
+  Salon        Salon?        @relation(fields: [salonId], references: [id])
+  salonId      String?
 
   @@map("users")
 }
@@ -75,16 +77,58 @@ model Appointment {
   barber_shop_id String
   service        String
   price          Decimal
+  duration       Int
   date           DateTime
   status         Status   @default(PENDING)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
-  user        Users      @relation(fields: [user_id], references: [id])
-  collaborator  Collaborator     @relation(fields: [barber_id], references: [id])
-  barber_shop Salon @relation(fields: [barber_shop_id], references: [id])
+  user         Users        @relation(fields: [user_id], references: [id])
+  collaborator Collaborator @relation(fields: [barber_id], references: [id])
+  barber_shop  Salon        @relation(fields: [barber_shop_id], references: [id])
 
+  @@index([date, status])
   @@map("appointments")
+}
+
+model Services {
+  id                String            @id @default(uuid())
+  name              String
+  description       String?
+  price             Decimal           @db.Decimal(10, 2)
+  duration          Int // duration in minutes
+  establishmentType EstablishmentType
+  serviceType       ServiceType
+  active            Boolean           @default(true)
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @updatedAt
+  Salon             Salon?            @relation(fields: [salonId], references: [id])
+  salonId           String?
+  Collaborator      Collaborator[]
+
+  @@index([name, establishmentType, serviceType])
+  @@map("services")
+}
+
+enum ServiceType {
+  // Most common barbershop services
+  MALE_HAIRCUT
+  BEARD_TRIM_STYLING
+  FADE
+  MALE_EYEBROW_SHAPING
+  MALE_HAIR_COLORING
+
+  // Most common beauty salon services
+  FEMALE_HAIRCUT
+  MANICURE_PEDICURE
+  BLOWOUT_STRAIGHTENING
+  FEMALE_HAIR_COLORING
+  EYEBROW_DESIGN
+}
+
+enum EstablishmentType {
+  BARBERSHOP
+  BEAUTY_SALON
 }
 
 enum Status {
@@ -92,4 +136,35 @@ enum Status {
   CONFIRMED
   COMPLETED
   CANCELED
+}
+
+enum Role {
+  ADMIN
+  COLLABORATOR
+}
+
+enum WorkingDays {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum Specialties {
+  HAIR_CUT
+  HAIR_COLOR
+  HAIR_STYLING
+  HAIR_TREATMENT
+  HAIR_EXTENSIONS
+  HAIR_REMOVAL
+  MANICURE
+  PEDICURE
+  EYEBROW_DESIGN
+  EYEBROW_TINTING
+  EYEBROW_WASHING
+  EYEBROW_TRIMMING
+  EYEBROW_SHAPING
 }
