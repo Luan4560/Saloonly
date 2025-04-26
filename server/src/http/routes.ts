@@ -36,8 +36,6 @@ export async function routes(app: FastifyTypedInstance) {
   
      registerSalon
   );
-
- 
   
 }
 
