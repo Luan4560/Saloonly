@@ -56,13 +56,12 @@ model Collaborator {
 }
 
 model Users {
-  id         String   @id @default(uuid())
-  name       String
-  phone      String
-  email      String   @unique
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
+  id           String        @id @default(uuid())
+  name         String
+  phone        String
+  email        String        @unique
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
   appointments Appointment[]
   Salon        Salon?        @relation(fields: [salonId], references: [id])
   salonId      String?
