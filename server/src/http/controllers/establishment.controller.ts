@@ -62,14 +62,14 @@ export async function getEstablishments(
 }
 
 export async function getEstablishmentById(
-  request: FastifyRequest<{ Params: { establishmentID: string } }>,
+  request: FastifyRequest<{ Params: { establishment_id: string } }>,
   reply: FastifyReply
 ) {
-  const { establishmentID } = request.params;
+  const { establishment_id } = request.params;
 
   const establishment = await prisma.establishment.findUnique({
     where: {
-      id: establishmentID,
+      id: establishment_id,
     },
   });
 
@@ -83,16 +83,16 @@ export async function getEstablishmentById(
 export async function updateEstablishment(
   request: FastifyRequest<{
     Body: Establishment;
-    Params: { establishmentID: string };
+    Params: { establishment_id: string };
   }>,
   reply: FastifyReply
 ) {
-  const { establishmentID } = request.params;
+  const { establishment_id } = request.params;
   const { name, phone, email, address, image } = request.body;
 
   const isEstablishemntExists = await prisma.establishment.findUnique({
     where: {
-      id: establishmentID,
+      id: establishment_id,
     },
   });
 
@@ -102,7 +102,7 @@ export async function updateEstablishment(
 
   const establishment = await prisma.establishment.update({
     where: {
-      id: establishmentID,
+      id: establishment_id,
     },
     data: {
       name,
@@ -117,14 +117,14 @@ export async function updateEstablishment(
 }
 
 export async function deleteEstablishment(
-  request: FastifyRequest<{ Params: { establishmentID: string } }>,
+  request: FastifyRequest<{ Params: { establishment_id: string } }>,
   reply: FastifyReply
 ) {
-  const { establishmentID } = request.params;
+  const { establishment_id } = request.params;
 
   const isEstablishemntExists = await prisma.establishment.findUnique({
     where: {
-      id: establishmentID,
+      id: establishment_id,
     },
   });
 
@@ -134,7 +134,7 @@ export async function deleteEstablishment(
 
   await prisma.establishment.delete({
     where: {
-      id: establishmentID,
+      id: establishment_id,
     },
   });
 
