@@ -1,9 +1,9 @@
 import { Specialties } from "@prisma/client";
-import { z } from "zod";
+import z from "zod";
 
 export const registerEstablishmentSchemaResponse = {
   schema: {
-    tags: ["establishment"],
+    tags: ["Establishment"],
     description: "Register a new establishment",
     body: z.object({
       name: z.string(),

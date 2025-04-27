@@ -33,18 +33,18 @@ model Establishment {
 }
 
 model Collaborator {
-  id            String      @id @default(uuid())
+  id            String        @id @default(uuid())
   name          String
   phone         String
-  email         String      @unique
+  email         String        @unique
   specialties   Specialties
   price         Decimal
   avatar        String
-  working_days  WorkingDays
+  working_days  WorkingDays[]
   working_hours String[]
-  role          Role        @default(COLLABORATOR)
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
+  role          Role          @default(COLLABORATOR)
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
 
   establishment    Establishment? @relation(fields: [establishment_id], references: [id])
   establishment_id String?

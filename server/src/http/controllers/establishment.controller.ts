@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { prisma } from "@/lib/prisma";
 import { randomUUID } from "node:crypto";
-import { registerBodySchemaRequest } from "@/schemas";
+import { registerBodySchemaRequest } from "@/schemas/establishment.schema";
 import { Establishment } from "@prisma/client";
 
 export async function registerEstablishment(
@@ -40,7 +40,7 @@ export async function registerEstablishment(
     await prisma.services.createMany({
       data: services.map((service) => ({
         ...service,
-        establishmentId: establishment.id,
+        establishment_id: establishment.id,
       })),
     });
   }
@@ -62,18 +62,14 @@ export async function getEstablishments(
 }
 
 export async function getEstablishmentById(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Params: { establishmentID: string } }>,
   reply: FastifyReply
 ) {
-  const { id } = request.params as { id: string };
+  const { establishmentID } = request.params;
 
   const establishment = await prisma.establishment.findUnique({
     where: {
-      id: id,
-    },
-    include: {
-      services: true,
-      collaborators: true,
+      id: establishmentID,
     },
   });
 
@@ -85,15 +81,18 @@ export async function getEstablishmentById(
 }
 
 export async function updateEstablishment(
-  request: FastifyRequest<{ Body: Establishment }>,
+  request: FastifyRequest<{
+    Body: Establishment;
+    Params: { establishmentID: string };
+  }>,
   reply: FastifyReply
 ) {
-  const { id } = request.params as { id: string };
+  const { establishmentID } = request.params;
   const { name, phone, email, address, image } = request.body;
 
   const isEstablishemntExists = await prisma.establishment.findUnique({
     where: {
-      id: id,
+      id: establishmentID,
     },
   });
 
@@ -103,7 +102,7 @@ export async function updateEstablishment(
 
   const establishment = await prisma.establishment.update({
     where: {
-      id: id,
+      id: establishmentID,
     },
     data: {
       name,
@@ -118,14 +117,14 @@ export async function updateEstablishment(
 }
 
 export async function deleteEstablishment(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Params: { establishmentID: string } }>,
   reply: FastifyReply
 ) {
-  const { id } = request.params as { id: string };
+  const { establishmentID } = request.params;
 
   const isEstablishemntExists = await prisma.establishment.findUnique({
     where: {
-      id: id,
+      id: establishmentID,
     },
   });
 
@@ -135,7 +134,7 @@ export async function deleteEstablishment(
 
   await prisma.establishment.delete({
     where: {
-      id: id,
+      id: establishmentID,
     },
   });
 

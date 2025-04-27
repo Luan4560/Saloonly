@@ -27,3 +27,11 @@ export type LoginUserInput = z.infer<typeof loginSchema>;
 export const loginResponseSchema = z.object({
   accessToken: z.string(),
 });
+
+export const createUserSchemaResponse = {
+  schema: {
+    tags: ["user"],
+    description: "Create a new user",
+    body: createUserSchema,
+  },
+};
