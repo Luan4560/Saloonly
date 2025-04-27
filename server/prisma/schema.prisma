@@ -57,9 +57,10 @@ model Collaborator {
 
 model Users {
   id           String        @id @default(uuid())
-  name         String
-  phone        String
+  name         String?
+  phone        String?
   email        String        @unique
+  password     String
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
   appointments Appointment[]

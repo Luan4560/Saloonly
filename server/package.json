@@ -21,9 +21,10 @@
     "@prisma/client": "6.5.0",
     "@types/node": "^22.13.13",
     "bcrypt": "5.1.1",
-    "dotenv": "16.4.7",
+    "dotenv": "16.5.0",
     "fastify": "5.2.2",
     "fastify-type-provider-zod": "4.0.2",
+    "fastify-zod": "1.4.0",
     "tsup": "^8.4.0",
     "typescript": "^5.8.2",
     "zod": "3.24.2"
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@eslint/js": "9.23.0",
     "@rocketseat/eslint-config": "2.2.2",
+    "@types/bcrypt": "5.0.2",
     "eslint": "9.23.0",
     "eslit": "6.0.0",
     "globals": "16.0.0",
