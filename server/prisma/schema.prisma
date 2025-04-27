@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Salon {
+model Establishment {
   id            String   @id @default(uuid())
   name          String
   phone         String   @unique
@@ -29,7 +29,7 @@ model Salon {
   users         Users[]
 
   @@index([name])
-  @@map("barber_shops")
+  @@map("establishments")
 }
 
 model Collaborator {
@@ -46,46 +46,48 @@ model Collaborator {
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
 
-  barber_shop    Salon?        @relation(fields: [barber_shop_id], references: [id])
-  barber_shop_id String?
-  appointments   Appointment[]
-  Services       Services?     @relation(fields: [servicesId], references: [id])
-  servicesId     String?
+  establishment    Establishment? @relation(fields: [establishment_id], references: [id])
+  establishment_id String?
+  appointments     Appointment[]
+  Services         Services?      @relation(fields: [servicesId], references: [id])
+  servicesId       String?
 
   @@map("collaborators")
 }
 
 model Users {
-  id           String        @id @default(uuid())
-  name         String?
-  phone        String?
-  email        String        @unique
-  password     String
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  appointments Appointment[]
-  Salon        Salon?        @relation(fields: [salonId], references: [id])
-  salonId      String?
+  id               String         @id @default(uuid())
+  name             String?
+  phone            String?
+  email            String         @unique
+  password         String
+  role             Role           @default(ADMIN)
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+  appointments     Appointment[]
+  establishment    Establishment? @relation(fields: [establishment_id], references: [id])
+  establishment_id String?
 
   @@map("users")
 }
 
 model Appointment {
-  id             String   @id @default(uuid())
-  user_id        String
-  barber_id      String
-  barber_shop_id String
-  service        String
-  price          Decimal
-  duration       Int
-  date           DateTime
-  status         Status   @default(PENDING)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  id               String   @id @default(uuid())
+  user_id          String
+  barber_id        String
+  barber_shop_id   String
+  establishment_id String
+  service          String
+  price            Decimal
+  duration         Int
+  date             DateTime
+  status           Status   @default(PENDING)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
 
-  user         Users        @relation(fields: [user_id], references: [id])
-  collaborator Collaborator @relation(fields: [barber_id], references: [id])
-  barber_shop  Salon        @relation(fields: [barber_shop_id], references: [id])
+  user          Users         @relation(fields: [user_id], references: [id])
+  collaborator  Collaborator  @relation(fields: [barber_id], references: [id])
+  establishment Establishment @relation(fields: [establishment_id], references: [id])
 
   @@index([date, status])
   @@map("appointments")
@@ -102,8 +104,8 @@ model Services {
   active            Boolean           @default(true)
   created_at        DateTime          @default(now())
   updated_at        DateTime          @updatedAt
-  Salon             Salon?            @relation(fields: [salonId], references: [id])
-  salonId           String?
+  establishment     Establishment?    @relation(fields: [establishment_id], references: [id])
+  establishment_id  String?
   Collaborator      Collaborator[]
 
   @@index([name, establishmentType, serviceType])
@@ -141,6 +143,7 @@ enum Status {
 enum Role {
   ADMIN
   COLLABORATOR
+  USER
 }
 
 enum WorkingDays {

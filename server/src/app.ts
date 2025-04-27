@@ -10,7 +10,7 @@ import {
 import { fastifySwagger } from "@fastify/swagger";
 import { fastifySwaggerUi } from "@fastify/swagger-ui";
 import { fastifyCors } from "@fastify/cors";
-import { salonRoutes, userRoutes } from "./http/routes";
+import { establishmentRoutes, userRoutes } from "./http/routes";
 
 const SECRETJWT = process.env.JWT_SECRET;
 
@@ -64,5 +64,5 @@ app.register(fastifySwaggerUi, {
   routePrefix: "/docs",
 });
 
-app.register(salonRoutes, { prefix: "/api/salon" });
-app.register(userRoutes, { prefix: "/api/user" });
+app.register(establishmentRoutes, { prefix: "/api/admin/establishments" });
+app.register(userRoutes, { prefix: "/api/admin/users" });

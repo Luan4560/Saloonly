@@ -9,7 +9,7 @@ export async function createUser(
   req: FastifyRequest<{ Body: CreateUserInput }>,
   reply: FastifyReply
 ) {
-  const { password, email, name } = req.body;
+  const { password, email, name, role } = req.body;
 
   const user = await prisma.users.findUnique({
     where: {
@@ -30,6 +30,7 @@ export async function createUser(
         password: hashedPassword,
         email,
         name,
+        role,
       },
     });
 
@@ -81,8 +82,11 @@ export async function login(
 export async function getUsers(req: FastifyRequest, reply: FastifyReply) {
   const users = await prisma.users.findMany({
     select: {
+      id: true,
       name: true,
       email: true,
+      role: true,
+      phone: true,
     },
   });
 
