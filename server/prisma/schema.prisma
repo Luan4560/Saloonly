@@ -95,7 +95,6 @@ model Appointment {
 
 model Services {
   id                String            @id @default(uuid())
-  name              String
   description       String?
   price             Decimal           @db.Decimal(10, 2)
   duration          Int // duration in minutes
@@ -108,7 +107,7 @@ model Services {
   establishment_id  String?
   Collaborator      Collaborator[]
 
-  @@index([name, establishmentType, serviceType])
+  @@index([establishmentType, serviceType])
   @@map("services")
 }
 
