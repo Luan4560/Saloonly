@@ -15,8 +15,8 @@ jobs:
         uses: actions/setup-node@v4 
         with: 
           node-version: 22.x
-      - name: run install, build and test
+      - name: run install, build, and test
         run: |
-          npm install
-          npm run build
-          npm run test
+          yarn install
+          yarn build
+          yarn run test
