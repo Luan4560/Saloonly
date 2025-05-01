@@ -95,11 +95,11 @@ model Appointment {
 
 model Services {
   id                String            @id @default(uuid())
+  name              String
   description       String?
   price             Decimal           @db.Decimal(10, 2)
   duration          Int // duration in minutes
   establishmentType EstablishmentType
-  serviceType       ServiceType
   active            Boolean           @default(true)
   created_at        DateTime          @default(now())
   updated_at        DateTime          @updatedAt
@@ -107,24 +107,8 @@ model Services {
   establishment_id  String?
   Collaborator      Collaborator[]
 
-  @@index([establishmentType, serviceType])
+  @@index([establishmentType])
   @@map("services")
-}
-
-enum ServiceType {
-  // Most common barbershop services
-  MALE_HAIRCUT
-  BEARD_TRIM_STYLING
-  FADE
-  MALE_EYEBROW_SHAPING
-  MALE_HAIR_COLORING
-
-  // Most common beauty salon services
-  FEMALE_HAIRCUT
-  MANICURE_PEDICURE
-  BLOWOUT_STRAIGHTENING
-  FEMALE_HAIR_COLORING
-  EYEBROW_DESIGN
 }
 
 enum EstablishmentType {

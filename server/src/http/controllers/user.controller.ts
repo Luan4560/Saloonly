@@ -74,6 +74,8 @@ export async function login(
     path: "/",
     httpOnly: true,
     secure: true,
+    sameSite: "strict",
+    maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days in milliseconds
   });
 
   return { accessToken: token };
