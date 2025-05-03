@@ -38,8 +38,7 @@ model Collaborator {
   phone         String
   email         String        @unique
   specialties   Specialties
-  price         Decimal
-  avatar        String
+  avatar        String?
   working_days  WorkingDays[]
   working_hours String[]
   role          Role          @default(COLLABORATOR)
@@ -74,10 +73,9 @@ model Users {
 model Appointment {
   id               String   @id @default(uuid())
   user_id          String
-  barber_id        String
-  barber_shop_id   String
+  collaborator_id  String
   establishment_id String
-  service          String
+  service_id       String
   price            Decimal
   duration         Int
   date             DateTime
@@ -86,8 +84,9 @@ model Appointment {
   updated_at       DateTime @updatedAt
 
   user          Users         @relation(fields: [user_id], references: [id])
-  collaborator  Collaborator  @relation(fields: [barber_id], references: [id])
+  collaborator  Collaborator  @relation(fields: [collaborator_id], references: [id])
   establishment Establishment @relation(fields: [establishment_id], references: [id])
+  service       Services      @relation(fields: [service_id], references: [id])
 
   @@index([date, status])
   @@map("appointments")
@@ -106,6 +105,7 @@ model Services {
   establishment     Establishment?    @relation(fields: [establishment_id], references: [id])
   establishment_id  String?
   Collaborator      Collaborator[]
+  Appointment       Appointment[]
 
   @@index([establishmentType, serviceType])
   @@map("services")

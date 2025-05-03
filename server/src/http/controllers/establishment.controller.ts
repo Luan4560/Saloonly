@@ -8,22 +8,8 @@ export async function registerEstablishment(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
-  const {
-    name,
-    phone,
-    email,
-    address,
-    image,
-    password_hash,
-    latitude,
-    longitude,
-    opening_hours,
-    services,
-  } = registerBodySchemaRequest.parse(request.body);
-
-  const establishment = await prisma.establishment.create({
-    data: {
-      id: randomUUID(),
+  try {
+    const {
       name,
       phone,
       email,
@@ -33,19 +19,46 @@ export async function registerEstablishment(
       latitude,
       longitude,
       opening_hours,
-    },
-  });
-
-  if (services && services.length > 0) {
-    await prisma.services.createMany({
-      data: services.map((service) => ({
-        ...service,
-        establishment_id: establishment.id,
-      })),
+      services,
+    } = registerBodySchemaRequest.parse(request.body);
+  
+    const establishment = await prisma.establishment.create({
+      data: {
+        id: randomUUID(),
+        name,
+        phone,
+        email,
+        address,
+        image,
+        password_hash,
+        latitude,
+        longitude,
+        opening_hours,
+      },
     });
-  }
+  
+    if (services && services.length > 0) {
+      await prisma.services.createMany({
+        data: services.map((service) => ({
+          description: service.name,
+          price: service.price,
+          duration: service.duration,
+          establishmentType: service.establishmentType,
+          serviceType: service.serviceType,
+          active: service.active,
+          establishment_id: establishment.id,
+        })),
+      });
+    }
+  
+    return reply.code(201).send();
 
-  return reply.code(201).send();
+  }catch(error) {
+    return reply.code(500).send({
+      message: 'Internal server error',
+      error: error instanceof Error ? error.message : "Unknown error"
+    })
+  }
 }
 
 export async function getEstablishments(

@@ -14,6 +14,7 @@ import { establishmentRoutes } from "@/http/routes/establishment";
 import { userRoutes } from "@/http/routes/user";
 import { collaboratorRoutes } from "./http/routes/collaborator";
 import { servicesRoutes } from "./http/routes/service";
+import { appointmentRoutes } from "./http/routes/appointment";
 
 const SECRETJWT = process.env.JWT_SECRET;
 
@@ -71,3 +72,4 @@ app.register(userRoutes, { prefix: "/api/admin/users" });
 app.register(establishmentRoutes, { prefix: "/api/admin/establishments" });
 app.register(collaboratorRoutes, { prefix: "/api/admin/collaborators" });
 app.register(servicesRoutes, { prefix: "/api/admin/services" });
+app.register(appointmentRoutes, {prefix: "/api/admin/appointments"})

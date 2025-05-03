@@ -13,6 +13,8 @@ export const createUserResponseSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   name: z.string(),
+  role: z.enum(["USER", "ADMIN", "COLLABORATOR"]),
+  phone: z.string().nullable(), 
 });
 
 export type CreateUserResponse = z.infer<typeof createUserResponseSchema>;

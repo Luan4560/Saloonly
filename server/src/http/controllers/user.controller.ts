@@ -90,6 +90,8 @@ export async function getUsers(req: FastifyRequest, reply: FastifyReply) {
     },
   });
 
+  console.log(users);
+
   return reply.code(200).send(users);
 }
 
