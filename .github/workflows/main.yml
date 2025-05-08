@@ -21,6 +21,8 @@ jobs:
         with: 
           node-version: 22.x
       - name: run install, build and test
+        env:
+          JWT_SECRET: "your-secret-value" # Replace with your actual secret or use GitHub Secrets
         run: |
           cd server
           npm install
