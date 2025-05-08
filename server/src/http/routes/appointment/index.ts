@@ -1,6 +1,11 @@
-import { createAppointment } from "@/http/controllers/appointment.controller";
+import {
+  createAppointment,
+  getAppointments,
+} from "@/http/controllers/appointment.controller";
 import { FastifyTypedInstance } from "@/types";
 
 export async function appointmentRoutes(app: FastifyTypedInstance) {
-  app.post("/createAppointment", {preHandler: [app.authenticate]}, createAppointment)
+  app.post("/register", { preHandler: [app.authenticate] }, createAppointment);
+
+  app.get("/list", { preHandler: [app.authenticate] }, getAppointments);
 }

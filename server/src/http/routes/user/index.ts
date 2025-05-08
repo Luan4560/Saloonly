@@ -3,7 +3,6 @@ import {
   createUserResponseSchema,
   loginSchema,
   loginResponseSchema,
-  createUserSchemaResponse,
 } from "@/schemas/user.schema";
 import { FastifyTypedInstance } from "@/types";
 import {

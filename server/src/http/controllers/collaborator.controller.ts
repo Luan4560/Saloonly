@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { registerCollaboratorSchema } from "@/schemas/collaborator.schema";
-import { Collaborator, Specialties, WorkingDays } from "@prisma/client";
+import { Collaborator, Specialities, WorkingDays } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { FastifyReply, FastifyRequest } from "fastify";
 
@@ -13,14 +13,12 @@ export async function createCollaborator(
       name,
       phone,
       email,
-      price,
       avatar,
-      role,
       establishment_id,
-      servicesId,
+      serviceId,
       working_days,
       working_hours,
-      specialties,
+      specialities,
     } = registerCollaboratorSchema.parse(request.body);
 
     const establishment = await prisma.establishment.findUnique({
@@ -34,7 +32,7 @@ export async function createCollaborator(
     }
 
     const service = await prisma.services.findUnique({
-      where: { id: servicesId },
+      where: { id: serviceId },
     });
 
     if (!service) {
@@ -50,12 +48,10 @@ export async function createCollaborator(
         phone,
         email,
         avatar,
-        role,
         establishment_id,
-        servicesId,
         working_hours,
         working_days: working_days as WorkingDays[],
-        specialties: specialties[0] as Specialties,
+        specialities: specialities[0] as Specialities,
       },
     });
 
@@ -104,7 +100,7 @@ export async function updateCollaborator(
       servicesId,
       working_days,
       working_hours,
-      specialties,
+      specialities,
     } = request.body;
 
     const collaborator = await prisma.collaborator.update({
@@ -120,7 +116,7 @@ export async function updateCollaborator(
         establishment_id,
         servicesId,
         working_days,
-        specialties: specialties[0] as Specialties,
+        specialities: specialities[0] as Specialities,
         working_hours,
       },
     });

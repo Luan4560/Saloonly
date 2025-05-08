@@ -1,4 +1,4 @@
-import { Specialties } from "@prisma/client";
+import { Specialities } from "@prisma/client";
 import z from "zod";
 
 export const registerEstablishmentSchemaResponse = {
@@ -18,18 +18,6 @@ export const registerEstablishmentSchemaResponse = {
             price: z.number(),
             duration: z.number(),
             establishmentType: z.enum(["BARBERSHOP", "BEAUTY_SALON"]),
-            serviceType: z.enum([
-              "MALE_HAIRCUT",
-              "BEARD_TRIM_STYLING",
-              "FADE",
-              "MALE_EYEBROW_SHAPING",
-              "MALE_HAIR_COLORING",
-              "FEMALE_HAIRCUT",
-              "MANICURE_PEDICURE",
-              "BLOWOUT_STRAIGHTENING",
-              "FEMALE_HAIR_COLORING",
-              "EYEBROW_DESIGN",
-            ]),
             active: z.boolean().default(true),
           })
         )
@@ -80,18 +68,6 @@ export const registerBodySchemaRequest = z.object({
         price: z.number(),
         duration: z.number(),
         establishmentType: z.enum(["BARBERSHOP", "BEAUTY_SALON"]),
-        serviceType: z.enum([
-          "MALE_HAIRCUT",
-          "BEARD_TRIM_STYLING",
-          "FADE",
-          "MALE_EYEBROW_SHAPING",
-          "MALE_HAIR_COLORING",
-          "FEMALE_HAIRCUT",
-          "MANICURE_PEDICURE",
-          "BLOWOUT_STRAIGHTENING",
-          "FEMALE_HAIR_COLORING",
-          "EYEBROW_DESIGN",
-        ]),
         active: z.boolean().default(true),
       })
     )
@@ -102,7 +78,7 @@ export const registerBodySchemaRequest = z.object({
         name: z.string(),
         phone: z.string(),
         email: z.string().email(),
-        specialties: z.array(z.nativeEnum(Specialties)),
+        specialties: z.array(z.nativeEnum(Specialities)),
         price: z.number(),
         avatar: z.string(),
         working_days: z.array(z.string()),

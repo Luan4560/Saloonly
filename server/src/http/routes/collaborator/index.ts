@@ -9,7 +9,7 @@ import { FastifyTypedInstance } from "@/types";
 
 export async function collaboratorRoutes(app: FastifyTypedInstance) {
   app.post(
-    "/createCollaborator",
+    "/register",
     {
       preHandler: [app.authenticate],
       schema: {
@@ -21,7 +21,7 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
   );
 
   app.get(
-    "/getCollaborators",
+    "/list",
     {
       preHandler: [app.authenticate],
       schema: {
@@ -33,7 +33,7 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
   );
 
   app.get(
-    "/getCollaboratorById/:collaborator_id",
+    "/:collaborator_id",
     {
       preHandler: [app.authenticate],
       schema: {
@@ -45,7 +45,7 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
   );
 
   app.patch(
-    "/updateCollaborator/:collaborator_id",
+    "/:collaborator_id",
     {
       preHandler: [app.authenticate],
       schema: {
@@ -57,7 +57,7 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
   );
 
   app.delete(
-    "/deleteCollaborator/:collaborator_id",
+    "/:collaborator_id",
     {
       preHandler: [app.authenticate],
       schema: {

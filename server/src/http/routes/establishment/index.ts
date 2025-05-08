@@ -39,7 +39,7 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
   );
 
   app.get(
-    "/getEstablishmentById/:establishment_id",
+    "/:establishment_id",
     {
       preHandler: [app.authenticate],
       schema: {
@@ -51,7 +51,7 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
   );
 
   app.patch(
-    "/updateEstablishment/:establishment_id",
+    "/:establishment_id",
     {
       preHandler: [app.authenticate],
       schema: {
@@ -63,7 +63,7 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
   );
 
   app.delete(
-    "/deleteEstablishment/:establishment_id",
+    "/:establishment_id",
     {
       preHandler: [app.authenticate],
       schema: {
