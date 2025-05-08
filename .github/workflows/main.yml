@@ -1,9 +1,14 @@
 name: Continuous Integration
 
 on:
+  push:
+    branches:
+      - main
+      - master
   pull_request:
     branches:
-      ['main', 'master']
+      - main
+      - master
 
 jobs: 
   continuos-integration: 
@@ -17,6 +22,7 @@ jobs:
           node-version: 22.x
       - name: run install, build and test
         run: |
+          cd server
           npm install
           npm run build
           npm run test
