@@ -20,9 +20,9 @@ jobs:
         uses: actions/setup-node@v4 
         with: 
           node-version: 22.x
+      - name: Setup Environment Variables
+        run: echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
       - name: run install, build and test
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           cd server
           npm install
