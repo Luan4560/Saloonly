@@ -7,7 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Models
+// Enums
+enum EstablishmentType {
+  BARBERSHOP
+  BEAUTY_SALON
+}
+
 model Establishment {
   id            String   @id @default(uuid())
   name          String
@@ -25,36 +30,35 @@ model Establishment {
   updated_at    DateTime @updatedAt
 
   collaborators Collaborator[]
-  services      Services[]
+  services      Service[]
   appointments  Appointment[]
-  users         Users[]
+  users         User[]
 
   @@index([name])
   @@map("establishments")
 }
 
 model Collaborator {
-  id            String         @id @default(uuid())
+  id            String        @id @default(uuid())
   name          String
   phone         String
-  email         String         @unique
+  email         String        @unique
   specialities  Specialities
   avatar        String?
-  working_days  WorkingDays[]
-  working_hours WorkingHours[]
-  role          Role           @default(COLLABORATOR)
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
+  working_days  WorkingDay[]
+  working_hours WorkingHour[]
+  role          Role          @default(COLLABORATOR)
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
 
   establishment    Establishment? @relation(fields: [establishment_id], references: [id])
   establishment_id String?
   appointments     Appointment[]
-  servicesId       String?
 
   @@map("collaborators")
 }
 
-model Users {
+model User {
   id               String         @id @default(uuid())
   name             String?
   phone            String?
@@ -81,7 +85,7 @@ model Appointment {
   updated_at       DateTime @updatedAt
   appointment_date DateTime @default(now())
 
-  user          Users         @relation(fields: [user_id], references: [id])
+  user          User          @relation(fields: [user_id], references: [id])
   collaborator  Collaborator  @relation(fields: [collaborator_id], references: [id])
   establishment Establishment @relation(fields: [establishment_id], references: [id])
 
@@ -89,7 +93,7 @@ model Appointment {
   @@map("appointments")
 }
 
-model Services {
+model Service {
   id                String            @id @default(uuid())
   description       String?
   price             Decimal           @db.Decimal(10, 2)
@@ -105,7 +109,7 @@ model Services {
   @@map("services")
 }
 
-model WorkingHours {
+model WorkingHour {
   id              String       @id @default(uuid())
   start_time      String
   end_time        String
@@ -117,7 +121,7 @@ model WorkingHours {
   @@map("working_hours")
 }
 
-model WorkingDays {
+model WorkingDay {
   id              String          @id @default(uuid())
   day             WorkingDaysEnum
   collaborator    Collaborator    @relation(fields: [collaborator_id], references: [id])
@@ -126,12 +130,6 @@ model WorkingDays {
   updated_at      DateTime        @updatedAt
 
   @@map("working_days")
-}
-
-// Enums
-enum EstablishmentType {
-  BARBERSHOP
-  BEAUTY_SALON
 }
 
 enum Status {

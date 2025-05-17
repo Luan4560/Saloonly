@@ -21,10 +21,9 @@ export async function registerEstablishment(
       opening_hours,
       services,
     } = registerBodySchemaRequest.parse(request.body);
-  
+
     const establishment = await prisma.establishment.create({
       data: {
-        id: randomUUID(),
         name,
         phone,
         email,
@@ -36,28 +35,26 @@ export async function registerEstablishment(
         opening_hours,
       },
     });
-  
+
     if (services && services.length > 0) {
-      await prisma.services.createMany({
+      await prisma.service.createMany({
         data: services.map((service) => ({
           description: service.name,
           price: service.price,
           duration: service.duration,
           establishmentType: service.establishmentType,
-          serviceType: service.serviceType,
           active: service.active,
           establishment_id: establishment.id,
         })),
       });
     }
-  
-    return reply.code(201).send();
 
-  }catch(error) {
+    return reply.code(201).send();
+  } catch (error) {
     return reply.code(500).send({
-      message: 'Internal server error',
-      error: error instanceof Error ? error.message : "Unknown error"
-    })
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
   }
 }
 
@@ -83,6 +80,10 @@ export async function getEstablishmentById(
   const establishment = await prisma.establishment.findUnique({
     where: {
       id: establishment_id,
+    },
+    include: {
+      collaborators: true,
+      services: true,
     },
   });
 

@@ -1,4 +1,4 @@
-import { Specialities, WorkingDays } from "@prisma/client";
+import { Specialities } from "@prisma/client";
 import { z } from "zod";
 
 export const registerCollaboratorSchema = z.object({
@@ -12,11 +12,4 @@ export const registerCollaboratorSchema = z.object({
   establishment_id: z.string({
     required_error: "Establishment id is required",
   }),
-  serviceId: z.string({ required_error: "Services id is required" }),
-  working_days: z.array(
-    z.nativeEnum(WorkingDays, {
-      required_error: "Working days is required",
-    })
-  ),
-  working_hours: z.array(z.string()),
 });

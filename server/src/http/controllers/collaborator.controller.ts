@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { registerCollaboratorSchema } from "@/schemas/collaborator.schema";
-import { Collaborator, Specialities, WorkingDays } from "@prisma/client";
-import { randomUUID } from "crypto";
+import { Collaborator, Specialities } from "@prisma/client";
 import { FastifyReply, FastifyRequest } from "fastify";
 
 export async function createCollaborator(
@@ -9,17 +8,8 @@ export async function createCollaborator(
   reply: FastifyReply
 ) {
   try {
-    const {
-      name,
-      phone,
-      email,
-      avatar,
-      establishment_id,
-      serviceId,
-      working_days,
-      working_hours,
-      specialities,
-    } = registerCollaboratorSchema.parse(request.body);
+    const { name, phone, email, avatar, establishment_id, specialities } =
+      registerCollaboratorSchema.parse(request.body);
 
     const establishment = await prisma.establishment.findUnique({
       where: { id: establishment_id },
@@ -31,26 +21,13 @@ export async function createCollaborator(
       });
     }
 
-    const service = await prisma.services.findUnique({
-      where: { id: serviceId },
-    });
-
-    if (!service) {
-      return reply.code(404).send({
-        message: "Service not found",
-      });
-    }
-
     const collaborator = await prisma.collaborator.create({
       data: {
-        id: randomUUID(),
         name,
         phone,
         email,
         avatar,
         establishment_id,
-        working_hours,
-        working_days: working_days as WorkingDays[],
         specialities: specialities[0] as Specialities,
       },
     });
@@ -90,18 +67,8 @@ export async function updateCollaborator(
 ) {
   try {
     const { collaborator_id } = request.params;
-    const {
-      name,
-      phone,
-      email,
-      avatar,
-      role,
-      establishment_id,
-      servicesId,
-      working_days,
-      working_hours,
-      specialities,
-    } = request.body;
+    const { name, phone, email, avatar, role, establishment_id, specialities } =
+      request.body;
 
     const collaborator = await prisma.collaborator.update({
       where: {
@@ -114,10 +81,7 @@ export async function updateCollaborator(
         avatar,
         role,
         establishment_id,
-        servicesId,
-        working_days,
         specialities: specialities[0] as Specialities,
-        working_hours,
       },
     });
 

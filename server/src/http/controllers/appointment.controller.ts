@@ -78,7 +78,12 @@ export async function createAppointment(
     }
 
     // Check if collaborator works on this day
-    const collaboratorWorkingDays = collaborator.working_days;
+    const collaboratorWorkingDays = await prisma.workingDay.findMany({
+      where: {
+        collaborator_id,
+      },
+    });
+
     if (!collaboratorWorkingDays.includes(getDayName(dayOfWeek) as any)) {
       return reply.code(400).send({
         message: "Collaborator does not work on this day",
@@ -86,20 +91,14 @@ export async function createAppointment(
     }
 
     // Check if time is within collaborator's working hours
-    const collaboratorWorkingHours = collaborator.working_hours;
-    const isWithinWorkingHours = collaboratorWorkingHours.some((hours) => {
-      const [start, end] = hours.split("-");
-      return timeString >= start && timeString <= end;
+    const collaboratorWorkingHours = await prisma.workingDay.findMany({
+      where: {
+        collaborator_id,
+      },
     });
 
-    if (!isWithinWorkingHours) {
-      return reply.code(400).send({
-        message: "Appointment time is outside collaborator's working hours",
-      });
-    }
-
     // Get service details to check duration
-    const service = await prisma.services.findUnique({
+    const service = await prisma.service.findUnique({
       where: { id: service_id },
     });
 

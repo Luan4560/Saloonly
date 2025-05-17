@@ -11,7 +11,7 @@ export async function createUser(
 ) {
   const { password, email, name, role } = req.body;
 
-  const user = await prisma.users.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       email,
     },
@@ -25,7 +25,7 @@ export async function createUser(
 
   try {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = await prisma.users.create({
+    const user = await prisma.user.create({
       data: {
         password: hashedPassword,
         email,
@@ -46,7 +46,7 @@ export async function login(
 ) {
   const { email, password } = req.body;
 
-  const user = await prisma.users.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
     return reply.code(401).send({
@@ -80,7 +80,7 @@ export async function login(
 }
 
 export async function getUsers(req: FastifyRequest, reply: FastifyReply) {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     select: {
       id: true,
       name: true,

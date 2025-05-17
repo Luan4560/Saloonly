@@ -7,23 +7,11 @@ import {
 import { FastifyTypedInstance } from "@/types";
 
 export function servicesRoutes(app: FastifyTypedInstance) {
-  app.post(
-    "/createServices",
-    { preHandler: [app.authenticate] },
-    createService
-  );
+  app.post("/register", { preHandler: [app.authenticate] }, createService);
 
-  app.get("/getServices", { preHandler: [app.authenticate] }, getServices);
+  app.get("/list", { preHandler: [app.authenticate] }, getServices);
 
-  app.get(
-    "/getServiceById/:id",
-    { preHandler: [app.authenticate] },
-    getServiceById
-  );
+  app.get("/:id", { preHandler: [app.authenticate] }, getServiceById);
 
-  app.delete(
-    "/deleteService/:id",
-    { preHandler: [app.authenticate] },
-    deleteService
-  );
+  app.delete("/:id", { preHandler: [app.authenticate] }, deleteService);
 }
