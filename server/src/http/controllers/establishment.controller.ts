@@ -20,6 +20,7 @@ export async function registerEstablishment(
       longitude,
       opening_hours,
       services,
+      collaborators,
     } = registerBodySchemaRequest.parse(request.body);
 
     const establishment = await prisma.establishment.create({
@@ -49,6 +50,20 @@ export async function registerEstablishment(
       });
     }
 
+    if (collaborators && collaborators.length > 0) {
+      await prisma.collaborator.createMany({
+        data: collaborators.map((collaborator) => ({
+          name: collaborator.name,
+          phone: collaborator.phone,
+          email: collaborator.email,
+          specialities: collaborator.specialties[0],
+          avatar: collaborator.avatar,
+          role: collaborator.role,
+          establishment_id: establishment.id,
+        })),
+      });
+    }
+
     return reply.code(201).send();
   } catch (error) {
     return reply.code(500).send({
@@ -62,7 +77,12 @@ export async function getEstablishments(
   _: FastifyRequest,
   reply: FastifyReply
 ) {
-  const establishments = await prisma.establishment.findMany();
+  const establishments = await prisma.establishment.findMany({
+    include: {
+      collaborators: true,
+      services: true,
+    },
+  });
 
   if (!establishments) {
     return reply.code(404).send({ message: "Establishments not found" });
@@ -124,6 +144,10 @@ export async function updateEstablishment(
       email,
       address,
       image,
+    },
+    include: {
+      collaborators: true,
+      services: true,
     },
   });
 
