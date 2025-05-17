@@ -25,7 +25,6 @@ model Establishment {
   salt          String?
   latitude      Float?
   longitude     Float?
-  opening_hours Json
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
@@ -33,23 +32,24 @@ model Establishment {
   services      Service[]
   appointments  Appointment[]
   users         User[]
+  SpecialDate   SpecialDate[]
+  WorkingDay    WorkingDay[]
 
   @@index([name])
   @@map("establishments")
 }
 
 model Collaborator {
-  id            String        @id @default(uuid())
-  name          String
-  phone         String
-  email         String        @unique
-  specialities  Specialities
-  avatar        String?
-  working_days  WorkingDay[]
-  working_hours WorkingHour[]
-  role          Role          @default(COLLABORATOR)
-  created_at    DateTime      @default(now())
-  updated_at    DateTime      @updatedAt
+  id           String       @id @default(uuid())
+  name         String
+  phone        String
+  email        String       @unique
+  specialities Specialities
+  avatar       String?
+  working_days WorkingDay[]
+  role         Role         @default(COLLABORATOR)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
 
   establishment    Establishment? @relation(fields: [establishment_id], references: [id])
   establishment_id String?
@@ -109,27 +109,33 @@ model Service {
   @@map("services")
 }
 
-model WorkingHour {
-  id              String       @id @default(uuid())
-  start_time      String
-  end_time        String
-  collaborator    Collaborator @relation(fields: [collaborator_id], references: [id])
-  collaborator_id String
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
-
-  @@map("working_hours")
-}
-
 model WorkingDay {
-  id              String          @id @default(uuid())
-  day             WorkingDaysEnum
-  collaborator    Collaborator    @relation(fields: [collaborator_id], references: [id])
-  collaborator_id String
-  created_at      DateTime        @default(now())
-  updated_at      DateTime        @updatedAt
+  id String @id @default(uuid())
+
+  dayOfWeek WorkingDaysEnum
+  openTime  String
+  closeTime String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  establishment    Establishment @relation(fields: [establishment_id], references: [id])
+  establishment_id String
+  Collaborator     Collaborator? @relation(fields: [collaboratorId], references: [id])
+  collaboratorId   String?
 
   @@map("working_days")
+}
+
+model SpecialDate {
+  id        String   @id @default(uuid())
+  date      DateTime
+  isClosed  Boolean
+  openTime  String?
+  closeTime String?
+
+  establishment    Establishment @relation(fields: [establishment_id], references: [id])
+  establishment_id String
 }
 
 enum Status {

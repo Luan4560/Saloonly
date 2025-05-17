@@ -1,7 +1,6 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { prisma } from "@/lib/prisma";
-import { randomUUID } from "node:crypto";
-import { registerBodySchemaRequest } from "@/schemas/establishment.schema";
+import { registerEstablishmentSchemaResponse, } from "@/schemas/establishment.schema";
 import { Establishment } from "@prisma/client";
 
 export async function registerEstablishment(
@@ -9,60 +8,23 @@ export async function registerEstablishment(
   reply: FastifyReply
 ) {
   try {
-    const {
-      name,
-      phone,
-      email,
-      address,
-      image,
-      password_hash,
-      latitude,
-      longitude,
-      opening_hours,
-      services,
-      collaborators,
-    } = registerBodySchemaRequest.parse(request.body);
+    const establishmentParseResult = registerEstablishmentSchemaResponse.schema.body.safeParse(request.body);
 
-    const establishment = await prisma.establishment.create({
-      data: {
-        name,
-        phone,
-        email,
-        address,
-        image,
-        password_hash,
-        latitude,
-        longitude,
-        opening_hours,
-      },
-    });
+  if(!establishmentParseResult.success) {
+    const formattedErrors = establishmentParseResult.error.errors.map((err: any) => ({
+      field: err.path.join('.'),
+      message: err.message,
+    }))
 
-    if (services && services.length > 0) {
-      await prisma.service.createMany({
-        data: services.map((service) => ({
-          description: service.name,
-          price: service.price,
-          duration: service.duration,
-          establishmentType: service.establishmentType,
-          active: service.active,
-          establishment_id: establishment.id,
-        })),
-      });
-    }
+    return reply.code(400).send({
+      message: 'Validation error',
+      errors: formattedErrors,
+    })
+  }
 
-    if (collaborators && collaborators.length > 0) {
-      await prisma.collaborator.createMany({
-        data: collaborators.map((collaborator) => ({
-          name: collaborator.name,
-          phone: collaborator.phone,
-          email: collaborator.email,
-          specialities: collaborator.specialties[0],
-          avatar: collaborator.avatar,
-          role: collaborator.role,
-          establishment_id: establishment.id,
-        })),
-      });
-    }
+   await prisma.establishment.create({
+    data: establishmentParseResult
+   })
 
     return reply.code(201).send();
   } catch (error) {
