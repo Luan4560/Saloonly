@@ -9,7 +9,7 @@ export async function createUser(
   req: FastifyRequest<{ Body: CreateUserInput }>,
   reply: FastifyReply
 ) {
-  const { password, email, name, role } = req.body;
+  const { confirmPassword, password, email, name, role } = req.body;
 
   const user = await prisma.user.findUnique({
     where: {
@@ -24,13 +24,24 @@ export async function createUser(
   }
 
   try {
+    if (password !== confirmPassword) {
+      return reply.code(401).send({ message: "Passwords do not match" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+    const validRole = role.toUpperCase() as "ADMIN" | "COLLABORATOR" | "USER";
+    if (!["ADMIN", "COLLABORATOR", "USER"].includes(validRole)) {
+      return reply.code(400).send({ message: "Invalid role value" });
+    }
+
     const user = await prisma.user.create({
       data: {
         password: hashedPassword,
+        confirm_password: hashedPassword,
         email,
         name,
-        role,
+        role: validRole,
       },
     });
 

@@ -1,12 +1,7 @@
-import { fastify, FastifyReply, FastifyRequest } from "fastify";
+import fastify, { FastifyReply, FastifyRequest } from "fastify";
 import fCookie from "@fastify/cookie";
 import fjwt, { FastifyJWT } from "@fastify/jwt";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import {
-  validatorCompiler,
-  serializerCompiler,
-  jsonSchemaTransform,
-} from "fastify-type-provider-zod";
 import { fastifySwagger } from "@fastify/swagger";
 import { fastifySwaggerUi } from "@fastify/swagger-ui";
 import { fastifyCors } from "@fastify/cors";
@@ -15,6 +10,12 @@ import { userRoutes } from "@/http/routes/user";
 import { collaboratorRoutes } from "./http/routes/collaborator";
 import { servicesRoutes } from "./http/routes/service";
 import { appointmentRoutes } from "./http/routes/appointment";
+import {
+  validatorCompiler,
+  serializerCompiler,
+  jsonSchemaTransform,
+} from "fastify-type-provider-zod";
+import { parseData } from "./middlewares/parseData";
 
 const SECRETJWT = process.env.JWT_SECRET;
 
@@ -34,23 +35,7 @@ app.addHook("preHandler", (req, _, next) => {
   return next();
 });
 
-app.addHook("preHandler", (req, _, next) => {
-  if (req.body && typeof req.body === "object") {
-    const transformObject = (obj: any) => {
-      for (const key in obj) {
-        if (typeof obj[key] === "string") {
-          if (!["day_of_week", "establishment_type"].includes(key)) {
-            obj[key] = obj[key].charAt(0).toLowerCase() + obj[key].slice(1);
-          }
-        } else if (typeof obj[key] === "object" && obj[key] !== null) {
-          transformObject(obj[key]);
-        }
-      }
-    };
-    transformObject(req.body);
-  }
-  return next();
-});
+parseData();
 
 app.register(fCookie, {
   secret: process.env.COOKIE_SECRET,

@@ -3,6 +3,7 @@ import { z } from "zod";
 export const createUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
+  confirmPassword: z.string().min(6),
   name: z.string(),
   role: z.enum(["USER", "ADMIN", "COLLABORATOR"]),
 });
@@ -14,7 +15,7 @@ export const createUserResponseSchema = z.object({
   email: z.string().email(),
   name: z.string(),
   role: z.enum(["USER", "ADMIN", "COLLABORATOR"]),
-  phone: z.string().nullable(), 
+  phone: z.string().nullable(),
 });
 
 export type CreateUserResponse = z.infer<typeof createUserResponseSchema>;
