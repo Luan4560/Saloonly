@@ -1,7 +1,15 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { prisma } from "@/lib/prisma";
-import { registerEstablishmentSchemaResponse } from "@/schemas/establishment.schema";
-import { Establishment } from "@prisma/client";
+import z from "zod";
+
+import bcrypt from "bcryptjs";
+import { env } from "@/env";
+import {
+  registerEstablishmentSchemaResponse,
+  updateEstablishmentSchema,
+} from "@/schemas/establishment.schema";
+
+const SALT_ROUNDS = 10;
 
 const transformObjectKeys = (obj: any): any => {
   if (Array.isArray(obj)) {
@@ -9,6 +17,9 @@ const transformObjectKeys = (obj: any): any => {
   }
 
   if (obj !== null && typeof obj === "object") {
+    if (Object.getPrototypeOf(obj) !== Object.prototype) {
+      return obj;
+    }
     const transformed: any = {};
     for (const key in obj) {
       const newKey = key.charAt(0).toLowerCase() + key.slice(1);
@@ -22,7 +33,7 @@ const transformObjectKeys = (obj: any): any => {
 
 export async function registerEstablishment(
   request: FastifyRequest,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   try {
     const establishmentParseResult =
@@ -33,7 +44,7 @@ export async function registerEstablishment(
         (err) => ({
           field: err.path.join("."),
           message: err.message,
-        })
+        }),
       );
 
       return reply.code(400).send({
@@ -47,8 +58,11 @@ export async function registerEstablishment(
       specialDates,
       collaborators,
       services,
+      password,
       ...establishmentData
     } = establishmentParseResult.data;
+
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     // Check if establishment with same phone or email already exists
     const existingEstablishment = await prisma.establishment.findFirst({
@@ -76,6 +90,7 @@ export async function registerEstablishment(
     const establishment = await prisma.establishment.create({
       data: {
         ...establishmentData,
+        password_hash: hashedPassword,
         Collaborator: {
           create: collaborators?.map((collaborator) => ({
             name: collaborator.name,
@@ -118,9 +133,37 @@ export async function registerEstablishment(
       },
     });
 
-    return reply.code(201).send(transformObjectKeys(establishment));
+    if (request.user?.id) {
+      const updatedUser = await prisma.user.update({
+        where: { id: request.user.id },
+        data: { establishment_id: establishment.id },
+        select: { id: true, email: true, name: true, role: true },
+      });
+      const payload = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        establishment_id: establishment.id,
+        role: updatedUser.role,
+      };
+      const token = request.jwt.sign(payload);
+      reply.setCookie("access_token", token, {
+        path: "/",
+        httpOnly: true,
+        secure: env.NODE_ENV === "production",
+      });
+    }
+
+    const {
+      password_hash: _hash,
+      salt: _salt,
+      ...establishmentWithoutSecrets
+    } = establishment;
+    return reply
+      .code(201)
+      .send(transformObjectKeys(establishmentWithoutSecrets));
   } catch (error) {
-    console.error("Error creating establishment:", error);
+    request.log.error(error, "Error creating establishment");
     return reply.code(500).send({
       message: "Internal server error",
       error: error instanceof Error ? error.message : "Unknown error",
@@ -129,11 +172,21 @@ export async function registerEstablishment(
 }
 
 export async function getEstablishments(
-  _: FastifyRequest,
-  reply: FastifyReply
+  request: FastifyRequest,
+  reply: FastifyReply,
 ) {
   try {
+    let establishmentId: string | undefined = request.user?.establishment_id;
+    if (request.user?.id) {
+      const user = await prisma.user.findUnique({
+        where: { id: request.user.id },
+        select: { establishment_id: true },
+      });
+      if (user?.establishment_id) establishmentId = user.establishment_id;
+    }
+    const where = establishmentId ? { id: establishmentId } : undefined;
     const establishments = await prisma.establishment.findMany({
+      where,
       include: {
         Collaborator: true,
         Service: true,
@@ -143,7 +196,7 @@ export async function getEstablishments(
     });
 
     if (!establishments || establishments.length === 0) {
-      return reply.code(404).send({ message: "No establishments found" });
+      return reply.code(200).send([]);
     }
 
     return reply.code(200).send(transformObjectKeys(establishments));
@@ -157,9 +210,18 @@ export async function getEstablishments(
 
 export async function getEstablishmentById(
   request: FastifyRequest<{ Params: { establishment_id: string } }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   const { establishment_id } = request.params;
+  const userEstablishmentId = request.user?.establishment_id;
+  const isPlatformAdmin = request.user?.role === "ADMIN";
+  if (
+    !isPlatformAdmin &&
+    userEstablishmentId &&
+    userEstablishmentId !== establishment_id
+  ) {
+    return reply.code(403).send({ message: "Forbidden" });
+  }
 
   const establishment = await prisma.establishment.findUnique({
     where: {
@@ -181,65 +243,100 @@ export async function getEstablishmentById(
 }
 
 export async function updateEstablishment(
-  request: FastifyRequest<{
-    Body: Establishment;
-    Params: { establishment_id: string };
-  }>,
-  reply: FastifyReply
-) {
-  const { establishment_id } = request.params;
-  const { name, phone, email, address, image } = request.body;
-
-  const isEstablishemntExists = await prisma.establishment.findUnique({
-    where: {
-      id: establishment_id,
-    },
-  });
-
-  if (!isEstablishemntExists) {
-    return reply.code(404).send({ message: "Establishment not found" });
-  }
-
-  const establishment = await prisma.establishment.update({
-    where: {
-      id: establishment_id,
-    },
-    data: {
-      name,
-      phone,
-      email,
-      address,
-      image,
-    },
-    include: {
-      Collaborator: true,
-      Service: true,
-      WorkingDay: true,
-      SpecialDate: true,
-    },
-  });
-
-  return reply.code(200).send(transformObjectKeys(establishment));
-}
-
-export async function deleteEstablishment(
   request: FastifyRequest<{ Params: { establishment_id: string } }>,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) {
   try {
     const { establishment_id } = request.params;
+    const userEstablishmentId = request.user?.establishment_id;
+    const isPlatformAdmin = request.user?.role === "ADMIN";
+    if (
+      !isPlatformAdmin &&
+      userEstablishmentId &&
+      userEstablishmentId !== establishment_id
+    ) {
+      return reply.code(403).send({ message: "Forbidden" });
+    }
+    const body = updateEstablishmentSchema.parse(request.body);
 
-    const isEstablishemntExists = await prisma.establishment.findUnique({
+    const isEstablishmentExists = await prisma.establishment.findUnique({
       where: {
         id: establishment_id,
       },
     });
 
-    if (!isEstablishemntExists) {
+    if (!isEstablishmentExists) {
+      return reply.code(404).send({ message: "Establishment not found" });
+    }
+
+    const data: Record<string, unknown> = {};
+    if (body.name !== undefined) data.name = body.name;
+    if (body.phone !== undefined) data.phone = body.phone;
+    if (body.email !== undefined) data.email = body.email;
+    if (body.address !== undefined) data.address = body.address;
+    if (body.image !== undefined) data.image = body.image;
+
+    const establishment = await prisma.establishment.update({
+      where: {
+        id: establishment_id,
+      },
+      data,
+      include: {
+        Collaborator: true,
+        Service: true,
+        WorkingDay: true,
+        SpecialDate: true,
+      },
+    });
+
+    return reply.code(200).send(transformObjectKeys(establishment));
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return reply.code(400).send({
+        message: "Validation error",
+        errors: error.errors.map((err) => ({
+          field: err.path.join("."),
+          message: err.message,
+        })),
+      });
+    }
+    return reply.code(500).send({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
+
+export async function deleteEstablishment(
+  request: FastifyRequest<{ Params: { establishment_id: string } }>,
+  reply: FastifyReply,
+) {
+  try {
+    const { establishment_id } = request.params;
+    const userEstablishmentId = request.user?.establishment_id;
+    const isPlatformAdmin = request.user?.role === "ADMIN";
+    if (
+      !isPlatformAdmin &&
+      userEstablishmentId &&
+      userEstablishmentId !== establishment_id
+    ) {
+      return reply.code(403).send({ message: "Forbidden" });
+    }
+
+    const isEstablishmentExists = await prisma.establishment.findUnique({
+      where: {
+        id: establishment_id,
+      },
+    });
+
+    if (!isEstablishmentExists) {
       return reply.code(404).send({ message: "Establishment not found" });
     }
 
     await prisma.$transaction([
+      prisma.appointment.deleteMany({
+        where: { establishment_id },
+      }),
       prisma.workingDay.deleteMany({
         where: { establishment_id },
       }),
@@ -261,7 +358,7 @@ export async function deleteEstablishment(
       .code(200)
       .send({ message: "Establishment deleted successfully" });
   } catch (error) {
-    console.error("Error deleting establishment:", error);
+    request.log.error(error, "Error deleting establishment");
     return reply.code(500).send({
       message: "Internal server error",
       error: error instanceof Error ? error.message : "Unknown error",

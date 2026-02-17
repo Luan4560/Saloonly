@@ -1,14 +1,15 @@
 {
-  "name": "server",
+  "name": "@saloonly/server",
   "version": "1.0.0",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "predev": "prisma generate",
     "dev": "tsx watch src/server.ts",
     "start": "node build/server.js",
-    "build": "tsup src --out-dir build"
+    "build": "tsup"
   },
   "keywords": [],
   "author": "",
@@ -20,9 +21,11 @@
     "@fastify/jwt": "9.1.0",
     "@fastify/swagger": "9.4.2",
     "@fastify/swagger-ui": "5.2.2",
-    "@prisma/client": "6.5.0",
+    "@prisma/adapter-pg": "^7.4.0",
+    "@prisma/client": "^7.4.0",
+    "pg": "^8.13.0",
     "@types/node": "^22.13.13",
-    "bcrypt": "5.1.1",
+    "bcryptjs": "3.0.3",
     "dotenv": "16.5.0",
     "fastify": "5.3.3",
     "fastify-type-provider-zod": "4.0.2",
@@ -33,15 +36,13 @@
   "devDependencies": {
     "@eslint/js": "9.23.0",
     "@rocketseat/eslint-config": "2.2.2",
-    "@types/bcrypt": "5.0.2",
+    "@types/bcryptjs": "3.0.0",
     "eslint": "9.23.0",
-    "eslit": "6.0.0",
     "globals": "16.0.0",
-    "prisma": "6.5.0",
+    "prisma": "^7.4.0",
     "tsx": "^4.19.3",
     "turbo": "2.5.3",
     "typescript-eslint": "8.28.0",
     "vitest": "3.1.2"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  }
 }

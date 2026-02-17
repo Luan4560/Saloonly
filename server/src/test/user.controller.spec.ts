@@ -3,7 +3,8 @@ import { test, expect, describe, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    users: {
+    user: {
+      findUnique: vi.fn(),
       create: vi.fn(),
     },
   },
@@ -19,19 +20,36 @@ describe("User Controller", () => {
       id: "1",
       name: "John Doe",
       email: "john.doe@example.com",
-      password: "password",
+      role: "USER" as const,
+      phone: null as string | null,
     };
 
-    (prisma.users.create as any).mockResolvedValue(mockUser);
+    (prisma.user.findUnique as any).mockResolvedValue(null);
+    (prisma.user.create as any).mockResolvedValue(mockUser);
 
-    const user = await prisma.users.create({
-      data: mockUser,
+    const user = await prisma.user.create({
+      data: {
+        password: "hashed",
+        confirm_password: "hashed",
+        email: mockUser.email,
+        name: mockUser.name,
+        role: mockUser.role,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        phone: true,
+      },
     });
 
     expect(user).toEqual(mockUser);
     expect(user).toHaveProperty("id");
     expect(user).toHaveProperty("name");
     expect(user).toHaveProperty("email");
-    expect(user).toHaveProperty("password");
+    expect(user).toHaveProperty("role");
+    expect(user).toHaveProperty("phone");
+    expect(user).not.toHaveProperty("password");
   });
 });

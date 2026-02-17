@@ -22,6 +22,8 @@ type UserPayload = {
   id: string;
   email: string;
   name: string;
+  establishment_id?: string;
+  role?: "ADMIN" | "COLLABORATOR" | "USER";
 };
 
 declare module "@fastify/jwt" {
@@ -29,6 +31,8 @@ declare module "@fastify/jwt" {
     user: UserPayload;
   }
 }
+
+export type { UserPayload };
 
 export type FastifyTypedInstance = FastifyInstance<
   RawServerDefault,

@@ -6,7 +6,19 @@ export const parseData = () => {
       const transformObject = (obj: any) => {
         for (const key in obj) {
           if (typeof obj[key] === "string") {
-            if (!["day_of_week", "establishment_type"].includes(key)) {
+            const excludedKeys = [
+              "day_of_week",
+              "establishment_type",
+              "establishmentType",
+              "status",
+              "role",
+              "name",
+              "description",
+              "address",
+              "image",
+              "avatar",
+            ];
+            if (!excludedKeys.includes(key) && obj[key].length >= 1) {
               obj[key] = obj[key].charAt(0).toLowerCase() + obj[key].slice(1);
             }
           } else if (typeof obj[key] === "object" && obj[key] !== null) {

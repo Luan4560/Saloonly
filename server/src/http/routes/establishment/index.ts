@@ -6,8 +6,10 @@ import {
   registerEstablishment,
   updateEstablishment,
 } from "@/http/controllers/establishment.controller";
-import { registerEstablishmentSchemaResponse } from "@/schemas/establishment.schema";
-import z from "zod";
+import {
+  registerEstablishmentResponseSchema,
+  registerEstablishmentSchemaResponse,
+} from "@/schemas/establishment.schema";
 
 export async function establishmentRoutes(app: FastifyTypedInstance) {
   app.post(
@@ -19,7 +21,7 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
         description: "Register establishment",
         body: registerEstablishmentSchemaResponse.schema.body,
         response: {
-          201: z.null(),
+          201: registerEstablishmentResponseSchema,
         },
       },
     },

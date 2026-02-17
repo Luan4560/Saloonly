@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Enums
@@ -68,20 +68,34 @@ model Speciality {
 }
 
 model User {
-  id               String         @id @default(uuid())
-  name             String?
-  phone            String?
-  email            String         @unique
-  password         String
-  confirm_password String         @default("")
-  role             Role           @default(ADMIN)
-  created_at       DateTime       @default(now())
-  updated_at       DateTime       @updatedAt
-  appointments     Appointment[]
-  establishment    Establishment? @relation(fields: [establishment_id], references: [id])
-  establishment_id String?
+  id                 String               @id @default(uuid())
+  name               String?
+  phone              String?
+  email              String               @unique
+  password           String
+  confirm_password   String               @default("")
+  role               Role                 @default(ADMIN)
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @updatedAt
+  appointments       Appointment[]
+  establishment      Establishment?       @relation(fields: [establishment_id], references: [id])
+  establishment_id   String?
+  PasswordResetToken PasswordResetToken[]
 
   @@map("users")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  user_id    String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expires_at])
+  @@map("password_reset_tokens")
 }
 
 model Appointment {
