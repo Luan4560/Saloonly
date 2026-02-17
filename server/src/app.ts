@@ -1,31 +1,37 @@
-import { fastify, FastifyReply, FastifyRequest } from "fastify";
+import fastify, { FastifyReply, FastifyRequest } from "fastify";
 import fCookie from "@fastify/cookie";
 import fjwt, { FastifyJWT } from "@fastify/jwt";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import {
-  validatorCompiler,
-  serializerCompiler,
-  jsonSchemaTransform,
-} from "fastify-type-provider-zod";
 import { fastifySwagger } from "@fastify/swagger";
 import { fastifySwaggerUi } from "@fastify/swagger-ui";
 import { fastifyCors } from "@fastify/cors";
 import { establishmentRoutes } from "@/http/routes/establishment";
 import { userRoutes } from "@/http/routes/user";
-import { collaboratorRoutes } from "./http/routes/collaborator";
-import { servicesRoutes } from "./http/routes/service";
+import { collaboratorRoutes } from "@/http/routes/collaborator";
+import { servicesRoutes } from "@/http/routes/service";
+import { appointmentRoutes } from "@/http/routes/appointment";
+import {
+  validatorCompiler,
+  serializerCompiler,
+  jsonSchemaTransform,
+} from "fastify-type-provider-zod";
+import { parseData } from "@/middlewares/parseData";
+import { env } from "@/env";
 
-const SECRETJWT = process.env.JWT_SECRET;
-
-if (!SECRETJWT) {
-  throw new Error("JWT_SECRET is not defined");
-}
+const SECRETJWT = env.JWT_SECRET;
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
-app.register(fastifyCors, { origin: "*" });
+app.register(fastifyCors, {
+  origin:
+    env.NODE_ENV === "dev"
+      ? ["http://localhost:5173", "http://localhost:5174"]
+      : env.FRONTEND_URL,
+  credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+});
 app.register(fjwt, { secret: SECRETJWT });
 
 app.addHook("preHandler", (req, _, next) => {
@@ -33,8 +39,10 @@ app.addHook("preHandler", (req, _, next) => {
   return next();
 });
 
+parseData();
+
 app.register(fCookie, {
-  secret: process.env.COOKIE_SECRET,
+  secret: env.COOKIE_SECRET,
   hook: "preHandler",
 });
 
@@ -47,9 +55,13 @@ app.decorate(
       return reply.code(401).send({ message: "Authorization required" });
     }
 
-    const decoded = req.jwt.verify<FastifyJWT["user"]>(token);
-    req.user = decoded;
-  }
+    try {
+      const decoded = req.jwt.verify<FastifyJWT["user"]>(token);
+      req.user = decoded;
+    } catch {
+      return reply.code(401).send({ message: "Invalid or expired token" });
+    }
+  },
 );
 
 app.register(fastifySwagger, {
@@ -71,3 +83,4 @@ app.register(userRoutes, { prefix: "/api/admin/users" });
 app.register(establishmentRoutes, { prefix: "/api/admin/establishments" });
 app.register(collaboratorRoutes, { prefix: "/api/admin/collaborators" });
 app.register(servicesRoutes, { prefix: "/api/admin/services" });
+app.register(appointmentRoutes, { prefix: "/api/admin/appointments" });

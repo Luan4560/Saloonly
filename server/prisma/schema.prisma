@@ -1,10 +1,16 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum EstablishmentType {
+  BARBERSHOP
+  BEAUTY_SALON
 }
 
 model Establishment {
@@ -19,101 +25,143 @@ model Establishment {
   salt          String?
   latitude      Float?
   longitude     Float?
-  opening_hours Json
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
-  collaborators Collaborator[]
-  services      Services[]
-  appointments  Appointment[]
-  users         Users[]
+  SpecialDate  SpecialDate[]
+  WorkingDay   WorkingDay[]
+  Collaborator Collaborator[]
+  User         User[]
+  Appointment  Appointment[]
+  Service      Service[]
 
   @@index([name])
   @@map("establishments")
 }
 
 model Collaborator {
-  id            String        @id @default(uuid())
-  name          String
-  phone         String
-  email         String        @unique
-  specialties   Specialties
-  price         Decimal
-  avatar        String
-  working_days  WorkingDays[]
-  working_hours String[]
-  role          Role          @default(COLLABORATOR)
-  created_at    DateTime      @default(now())
-  updated_at    DateTime      @updatedAt
+  id           String       @id @default(uuid())
+  name         String
+  phone        String
+  email        String       @unique
+  avatar       String?
+  working_days WorkingDay[]
+  role         Role         @default(COLLABORATOR)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
 
   establishment    Establishment? @relation(fields: [establishment_id], references: [id])
   establishment_id String?
   appointments     Appointment[]
-  Services         Services?      @relation(fields: [servicesId], references: [id])
-  servicesId       String?
 
   @@map("collaborators")
 }
 
-model Users {
-  id               String         @id @default(uuid())
-  name             String?
-  phone            String?
-  email            String         @unique
-  password         String
-  role             Role           @default(ADMIN)
-  created_at       DateTime       @default(now())
-  updated_at       DateTime       @updatedAt
-  appointments     Appointment[]
-  establishment    Establishment? @relation(fields: [establishment_id], references: [id])
-  establishment_id String?
+model Speciality {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@map("specialities")
+}
+
+model User {
+  id                 String               @id @default(uuid())
+  name               String?
+  phone              String?
+  email              String               @unique
+  password           String
+  confirm_password   String               @default("")
+  role               Role                 @default(ADMIN)
+  created_at         DateTime             @default(now())
+  updated_at         DateTime             @updatedAt
+  appointments       Appointment[]
+  establishment      Establishment?       @relation(fields: [establishment_id], references: [id])
+  establishment_id   String?
+  PasswordResetToken PasswordResetToken[]
 
   @@map("users")
 }
 
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  user_id    String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([expires_at])
+  @@map("password_reset_tokens")
+}
+
 model Appointment {
-  id               String   @id @default(uuid())
+  id               String        @id @default(uuid())
   user_id          String
-  barber_id        String
-  barber_shop_id   String
+  collaborator_id  String
   establishment_id String
-  service          String
-  price            Decimal
-  duration         Int
-  date             DateTime
-  status           Status   @default(PENDING)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  service_id       String
+  status           Status        @default(PENDING)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  appointment_date DateTime      @default(now())
+  day_of_week      String
+  open_time        String
+  close_time       String
+  user             User          @relation(fields: [user_id], references: [id])
+  collaborator     Collaborator  @relation(fields: [collaborator_id], references: [id])
+  establishment    Establishment @relation(fields: [establishment_id], references: [id])
 
-  user          Users         @relation(fields: [user_id], references: [id])
-  collaborator  Collaborator  @relation(fields: [barber_id], references: [id])
-  establishment Establishment @relation(fields: [establishment_id], references: [id])
-
-  @@index([date, status])
+  @@index([created_at, updated_at])
   @@map("appointments")
 }
 
-model Services {
-  id                String            @id @default(uuid())
-  name              String
-  description       String?
-  price             Decimal           @db.Decimal(10, 2)
-  duration          Int // duration in minutes
-  establishmentType EstablishmentType
-  active            Boolean           @default(true)
-  created_at        DateTime          @default(now())
-  updated_at        DateTime          @updatedAt
-  establishment     Establishment?    @relation(fields: [establishment_id], references: [id])
-  establishment_id  String?
-  Collaborator      Collaborator[]
+model Service {
+  id                 String            @id @default(uuid())
+  description        String?
+  price              Decimal           @db.Decimal(10, 2)
+  duration           Int // duration in minutes
+  establishment_type EstablishmentType
+  active             Boolean           @default(true)
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+  establishment      Establishment?    @relation(fields: [establishment_id], references: [id])
+  establishment_id   String?
 
-  @@index([establishmentType])
+  @@index([establishment_type])
   @@map("services")
 }
 
-enum EstablishmentType {
-  BARBERSHOP
-  BEAUTY_SALON
+model WorkingDay {
+  id String @id @default(uuid())
+
+  day_of_week WorkingDaysEnum
+  open_time   String
+  close_time  String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  establishment    Establishment @relation(fields: [establishment_id], references: [id])
+  establishment_id String
+  Collaborator     Collaborator? @relation(fields: [collaborator_id], references: [id])
+  collaborator_id  String?
+
+  @@map("working_days")
+}
+
+model SpecialDate {
+  id         String   @id @default(uuid())
+  date       DateTime
+  is_closed  Boolean
+  open_time  String?
+  close_time String?
+
+  establishment    Establishment @relation(fields: [establishment_id], references: [id])
+  establishment_id String
 }
 
 enum Status {
@@ -129,7 +177,7 @@ enum Role {
   USER
 }
 
-enum WorkingDays {
+enum WorkingDaysEnum {
   MONDAY
   TUESDAY
   WEDNESDAY
@@ -137,20 +185,4 @@ enum WorkingDays {
   FRIDAY
   SATURDAY
   SUNDAY
-}
-
-enum Specialties {
-  HAIR_CUT
-  HAIR_COLOR
-  HAIR_STYLING
-  HAIR_TREATMENT
-  HAIR_EXTENSIONS
-  HAIR_REMOVAL
-  MANICURE
-  PEDICURE
-  EYEBROW_DESIGN
-  EYEBROW_TINTING
-  EYEBROW_WASHING
-  EYEBROW_TRIMMING
-  EYEBROW_SHAPING
 }

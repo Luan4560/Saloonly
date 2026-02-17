@@ -3,7 +3,8 @@ import {
   createUserResponseSchema,
   loginSchema,
   loginResponseSchema,
-  createUserSchemaResponse,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from "@/schemas/user.schema";
 import { FastifyTypedInstance } from "@/types";
 import {
@@ -11,6 +12,8 @@ import {
   getUsers,
   login,
   logout,
+  forgotPassword,
+  resetPassword,
 } from "@/http/controllers/user.controller";
 import z from "zod";
 
@@ -27,7 +30,7 @@ export async function userRoutes(app: FastifyTypedInstance) {
         },
       },
     },
-    getUsers
+    getUsers,
   );
 
   app.post(
@@ -42,7 +45,7 @@ export async function userRoutes(app: FastifyTypedInstance) {
         },
       },
     },
-    createUser
+    createUser,
   );
 
   app.post(
@@ -57,7 +60,7 @@ export async function userRoutes(app: FastifyTypedInstance) {
         },
       },
     },
-    login
+    login,
   );
 
   app.delete(
@@ -69,7 +72,31 @@ export async function userRoutes(app: FastifyTypedInstance) {
         description: "Logout a user",
       },
     },
-    logout
+    logout,
+  );
+
+  app.post(
+    "/forgot-password",
+    {
+      schema: {
+        tags: ["User"],
+        description: "Request password reset",
+        body: forgotPasswordSchema,
+      },
+    },
+    forgotPassword,
+  );
+
+  app.post(
+    "/reset-password",
+    {
+      schema: {
+        tags: ["User"],
+        description: "Reset password with token",
+        body: resetPasswordSchema,
+      },
+    },
+    resetPassword,
   );
 
   app.log.info("user routes registered");

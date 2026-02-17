@@ -1,0 +1,27 @@
+{
+  "name": "saloonly",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:client": "pnpm --filter @saloonly/client dev",
+    "dev:server": "pnpm --filter @saloonly/server dev",
+    "build": "pnpm -r build",
+    "build:client": "pnpm --filter @saloonly/client build",
+    "build:server": "pnpm --filter @saloonly/server build",
+    "test": "pnpm -r test",
+    "test:server": "pnpm --filter @saloonly/server test",
+    "lint": "pnpm -r lint",
+    "db:migrate": "pnpm --filter @saloonly/server exec prisma migrate dev",
+    "db:generate": "pnpm --filter @saloonly/server exec prisma generate",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "pnpm": {
+    "overrides": {
+      "zod-to-json-schema": "3.24.6"
+    }
+  }
+}

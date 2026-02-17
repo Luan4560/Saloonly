@@ -1,33 +1,20 @@
 import {
   createService,
   deleteService,
+  getServiceById,
   getServices,
   updateService,
 } from "@/http/controllers/service.controller";
 import { FastifyTypedInstance } from "@/types";
 
 export function servicesRoutes(app: FastifyTypedInstance) {
-  app.post(
-    "/createServices",
-    { preHandler: [app.authenticate] },
-    createService
-  );
+  app.post("/register", { preHandler: [app.authenticate] }, createService);
 
-  app.get(
-    "/listServices/:establishment_id",
-    { preHandler: [app.authenticate] },
-    getServices
-  );
+  app.get("/list", { preHandler: [app.authenticate] }, getServices);
 
-  app.patch(
-    "/updateService/:service_id",
-    { preHandler: [app.authenticate] },
-    updateService
-  );
+  app.get("/:id", { preHandler: [app.authenticate] }, getServiceById);
 
-  app.delete(
-    "/deleteService/:service_id",
-    { preHandler: [app.authenticate] },
-    deleteService
-  );
+  app.patch("/:id", { preHandler: [app.authenticate] }, updateService);
+
+  app.delete("/:id", { preHandler: [app.authenticate] }, deleteService);
 }
