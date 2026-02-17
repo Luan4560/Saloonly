@@ -6,7 +6,6 @@ const firstLetterLower = (val: unknown) =>
     ? val.charAt(0).toLowerCase() + val.slice(1)
     : val;
 
-// Response shapes (camelCase relation keys after transformObjectKeys; DB columns stay snake_case)
 const collaboratorResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -145,7 +144,9 @@ export const updateEstablishmentSchema = z.object({
   image: z.string().optional(),
 });
 
-export type UpdateEstablishmentInput = z.infer<typeof updateEstablishmentSchema>;
+export type UpdateEstablishmentInput = z.infer<
+  typeof updateEstablishmentSchema
+>;
 
 export const registerEstablishmentSchemaResponse = {
   schema: {
@@ -160,9 +161,7 @@ export const registerEstablishmentSchemaResponse = {
       email: z.string({ required_error: "Email is required" }).email(),
       address: z.string({ required_error: "Address is required" }),
       image: z.string({ required_error: "Image is required" }),
-      password: z
-        .string({ required_error: "Password is required" })
-        .min(6),
+      password: z.string({ required_error: "Password is required" }).min(6),
       latitude: z.number().optional(),
       longitude: z.number().optional(),
       workingDays: workingDaysSchema,

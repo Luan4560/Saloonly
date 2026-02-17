@@ -64,7 +64,6 @@ export async function registerEstablishment(
 
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Check if establishment with same phone or email already exists
     const existingEstablishment = await prisma.establishment.findFirst({
       where: {
         OR: [

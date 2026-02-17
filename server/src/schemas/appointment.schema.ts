@@ -14,7 +14,6 @@ const workingDaySchema = z.object({
     (d) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      // Treat as civil date (YYYY-MM-DD): use UTC date parts so "2026-02-16" is always day 16
       const y = d.getUTCFullYear();
       const m = d.getUTCMonth();
       const day = d.getUTCDate();
