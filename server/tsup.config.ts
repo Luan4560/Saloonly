@@ -5,6 +5,7 @@ export default defineConfig({
   entry: ["src/server.ts"],
   outDir: "build",
   format: ["cjs"],
+  external: ["@prisma/client", "@prisma/client-runtime-utils"],
   esbuildOptions(options) {
     options.alias = {
       ...options.alias,
