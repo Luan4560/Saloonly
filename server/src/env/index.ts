@@ -9,7 +9,17 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(["dev", "test", "production"]).default("dev"),
     PORT: z.coerce.number().default(8080),
-    JWT_SECRET: z.string(),
+    JWT_SECRET: z
+      .string()
+      .optional()
+      .transform((v) => {
+        if (v && v.length >= 32) return v;
+        if (process.env.NODE_ENV === "test")
+          return "test-jwt-secret-not-for-production-32ch";
+        if (process.env.NODE_ENV === "dev")
+          return "dev-jwt-secret-not-for-production-32ch";
+        return v ?? "";
+      }),
     DATABASE_URL: z.string(),
     COOKIE_SECRET: z
       .string()
@@ -43,6 +53,16 @@ const envSchema = z
     {
       message: "COOKIE_SECRET is required in production (min 32 characters)",
       path: ["COOKIE_SECRET"],
+    },
+  )
+  .refine(
+    (data) =>
+      data.NODE_ENV === "production"
+        ? data.JWT_SECRET != null && data.JWT_SECRET.length >= 32
+        : true,
+    {
+      message: "JWT_SECRET is required in production (min 32 characters)",
+      path: ["JWT_SECRET"],
     },
   );
 
