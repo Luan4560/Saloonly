@@ -9,7 +9,7 @@ export const createServiceSchema = z.object({
   duration: z.number().int().positive(),
   establishment_id: z.string().uuid(),
   collaborator_id: z.string().uuid().optional(),
-  establishmentType: z.nativeEnum(EstablishmentType),
+  establishmentType: z.nativeEnum(EstablishmentType).optional(),
 });
 
 export const updateServiceSchema = z.object({

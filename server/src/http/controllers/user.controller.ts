@@ -1,14 +1,17 @@
+import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
+
 import { FastifyReply, FastifyRequest } from "fastify";
+import { env } from "@/env";
+import { prisma } from "@/lib/prisma";
+import { sendPasswordResetEmail } from "@/lib/nodemailer";
+
 import {
   CreateUserInput,
   LoginUserInput,
   forgotPasswordSchema,
   resetPasswordSchema,
 } from "@/schemas/user.schema";
-import { env } from "@/env";
-import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
-import crypto from "node:crypto";
 
 const SALT_ROUNDS = 10;
 
@@ -106,7 +109,36 @@ export async function login(
     secure: env.NODE_ENV === "production",
   });
 
-  return { accessToken: token };
+  const userResponse = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    ...(user.establishment_id && { establishment_id: user.establishment_id }),
+  };
+
+  return { accessToken: token, user: userResponse };
+}
+
+export async function getMe(req: FastifyRequest, reply: FastifyReply) {
+  const userId = req.user?.id;
+  if (!userId) {
+    return reply.code(401).send({ message: "Unauthorized" });
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      establishment_id: true,
+    },
+  });
+  if (!user) {
+    return reply.code(404).send({ message: "User not found" });
+  }
+  return reply.code(200).send(user);
 }
 
 export async function getUsers(req: FastifyRequest, reply: FastifyReply) {
@@ -133,23 +165,58 @@ const RESET_TOKEN_EXPIRY_HOURS = 1;
 
 export async function forgotPassword(req: FastifyRequest, reply: FastifyReply) {
   const { email } = forgotPasswordSchema.parse(req.body);
+
   const user = await prisma.user.findUnique({ where: { email } });
+
   if (!user) {
+    if (env.NODE_ENV !== "production") {
+      console.log("[forgotPassword] E-mail não encontrado na base (resposta genérica enviada)");
+    }
     return reply.code(200).send({
       message:
         "Se o e-mail existir na base, você receberá um link para redefinir a senha.",
     });
   }
+
   const token = crypto.randomBytes(32).toString("hex");
+
   const expiresAt = new Date();
+
   expiresAt.setHours(expiresAt.getHours() + RESET_TOKEN_EXPIRY_HOURS);
+
   await prisma.passwordResetToken.create({
     data: { token, user_id: user.id, expires_at: expiresAt },
   });
+
   const baseUrl = env.FRONTEND_URL;
   const resetLink = `${baseUrl}/reset-password?token=${token}`;
   if (env.NODE_ENV !== "production") {
+    console.log("[forgotPassword] Link de reset (dev):", resetLink);
     req.log.info({ resetLink }, "Password reset link (dev)");
+  }
+  if (env.SMTP_USER && env.SMTP_PASS && user.email) {
+    try {
+      await sendPasswordResetEmail(user.email, resetLink);
+      if (env.NODE_ENV !== "production") {
+        console.log("[forgotPassword] E-mail enviado para:", user.email);
+      }
+      req.log.info({ email: user.email }, "Password reset email sent");
+    } catch (err) {
+      if (env.NODE_ENV !== "production") {
+        console.error("[forgotPassword] Erro ao enviar e-mail:", err);
+      }
+      req.log.error(
+        { err, email: user.email },
+        "Failed to send password reset email",
+      );
+    }
+  } else if (user.email && env.NODE_ENV !== "production") {
+    console.warn(
+      "[forgotPassword] SMTP_USER ou SMTP_PASS não definidos no .env; e-mail não enviado. Defina para receber o link por e-mail.",
+    );
+    req.log.warn(
+      "SMTP_USER or SMTP_PASS not set; email not sent. Set them in .env to send password reset emails.",
+    );
   }
   return reply.code(200).send({
     message:

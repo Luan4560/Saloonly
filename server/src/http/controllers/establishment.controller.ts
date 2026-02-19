@@ -62,6 +62,19 @@ export async function registerEstablishment(
       ...establishmentData
     } = establishmentParseResult.data;
 
+    if (request.user?.id) {
+      const user = await prisma.user.findUnique({
+        where: { id: request.user.id },
+        select: { establishment_id: true },
+      });
+      if (user?.establishment_id) {
+        return reply.code(403).send({
+          message:
+            "Your account is already linked to an establishment. Each account can only have one establishment.",
+        });
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
     const existingEstablishment = await prisma.establishment.findFirst({
@@ -132,6 +145,9 @@ export async function registerEstablishment(
       },
     });
 
+    let accessToken: string | undefined;
+    let userResponse: { id: string; email: string; name: string | null; role: string; establishment_id: string } | undefined;
+
     if (request.user?.id) {
       const updatedUser = await prisma.user.update({
         where: { id: request.user.id },
@@ -151,6 +167,14 @@ export async function registerEstablishment(
         httpOnly: true,
         secure: env.NODE_ENV === "production",
       });
+      accessToken = token;
+      userResponse = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        role: updatedUser.role,
+        establishment_id: establishment.id,
+      };
     }
 
     const {
@@ -158,9 +182,14 @@ export async function registerEstablishment(
       salt: _salt,
       ...establishmentWithoutSecrets
     } = establishment;
+    const body = transformObjectKeys(establishmentWithoutSecrets) as Record<string, unknown>;
+    if (accessToken && userResponse) {
+      body.accessToken = accessToken;
+      body.user = userResponse;
+    }
     return reply
       .code(201)
-      .send(transformObjectKeys(establishmentWithoutSecrets));
+      .send(body);
   } catch (error) {
     request.log.error(error, "Error creating establishment");
     return reply.code(500).send({
@@ -183,9 +212,11 @@ export async function getEstablishments(
       });
       if (user?.establishment_id) establishmentId = user.establishment_id;
     }
-    const where = establishmentId ? { id: establishmentId } : undefined;
+    if (!establishmentId) {
+      return reply.code(200).send([]);
+    }
     const establishments = await prisma.establishment.findMany({
-      where,
+      where: { id: establishmentId },
       include: {
         Collaborator: true,
         Service: true,

@@ -32,8 +32,17 @@ export const loginSchema = z.object({
 
 export type LoginUserInput = z.infer<typeof loginSchema>;
 
+export const loginUserSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  name: z.string().nullable(),
+  role: z.enum(["USER", "ADMIN", "COLLABORATOR"]),
+  establishment_id: z.string().nullable().optional(),
+});
+
 export const loginResponseSchema = z.object({
   accessToken: z.string(),
+  user: loginUserSchema,
 });
 
 export const createUserSchemaResponse = {

@@ -9,15 +9,32 @@ import {
 import { FastifyTypedInstance } from "@/types";
 import {
   createUser,
+  getMe,
   getUsers,
   login,
   logout,
   forgotPassword,
   resetPassword,
 } from "@/http/controllers/user.controller";
+import { loginUserSchema } from "@/schemas/user.schema";
 import z from "zod";
 
 export async function userRoutes(app: FastifyTypedInstance) {
+  app.get(
+    "/me",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["User"],
+        description: "Get current authenticated user",
+        response: {
+          200: loginUserSchema,
+        },
+      },
+    },
+    getMe,
+  );
+
   app.get(
     "/",
     {

@@ -17,6 +17,19 @@ const envSchema = z
         return undefined;
       }),
     FRONTEND_URL: z.string().url().default("http://localhost:5173"),
+    SMTP_HOST: z.string().optional().default("smtp.gmail.com"),
+    SMTP_PORT: z.coerce.number().optional().default(587),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
+    SMTP_SECURE: z
+      .string()
+      .optional()
+      .default("false")
+      .transform((v) => v === "true"),
+    MAIL_FROM: z
+      .string()
+      .optional()
+      .default("Saloonly <noreply@saloonly.com>"),
   })
   .refine(
     (data) =>
@@ -24,8 +37,7 @@ const envSchema = z
         ? data.COOKIE_SECRET != null && data.COOKIE_SECRET.length >= 32
         : true,
     {
-      message:
-        "COOKIE_SECRET is required in production (min 32 characters)",
+      message: "COOKIE_SECRET is required in production (min 32 characters)",
       path: ["COOKIE_SECRET"],
     },
   );
@@ -36,8 +48,7 @@ if (_env.success === false) {
   const formatted = _env.error.format();
   console.error("Invalid environment variables", formatted);
   const message =
-    "Invalid environment variables: " +
-    JSON.stringify(formatted, null, 2);
+    "Invalid environment variables: " + JSON.stringify(formatted, null, 2);
   throw new Error(message);
 }
 

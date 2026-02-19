@@ -149,6 +149,14 @@ export async function createAppointment(
               },
             },
             collaborator: true,
+            service: {
+              select: {
+                id: true,
+                description: true,
+                price: true,
+                duration: true,
+              },
+            },
           },
         });
       }),
@@ -218,6 +226,14 @@ export async function getAppointments(
             longitude: true,
           },
         },
+        service: {
+          select: {
+            id: true,
+            description: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 
@@ -270,6 +286,14 @@ export async function updateAppointmentStatus(
             image: true,
             latitude: true,
             longitude: true,
+          },
+        },
+        service: {
+          select: {
+            id: true,
+            description: true,
+            price: true,
+            duration: true,
           },
         },
       },

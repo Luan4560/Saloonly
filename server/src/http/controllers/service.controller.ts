@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { EstablishmentType } from "@/lib/prisma";
 import { FastifyReply, FastifyRequest } from "fastify";
 import {
   createServiceSchema,
@@ -6,26 +7,30 @@ import {
 } from "@/schemas/service.schema";
 import z from "zod";
 
+const DEFAULT_ESTABLISHMENT_TYPE = EstablishmentType.BARBERSHOP;
+
 export async function createService(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
   try {
+    const body = createServiceSchema.parse(request.body);
     const {
       description,
-      establishmentType,
       establishment_id,
       price,
       duration,
-    } = createServiceSchema.parse(request.body);
+    } = body;
+    const establishment_type: EstablishmentType =
+      body.establishmentType ?? DEFAULT_ESTABLISHMENT_TYPE;
 
     const service = await prisma.service.create({
       data: {
         description,
-        establishment_type: establishmentType,
         establishment_id,
         price,
         duration,
+        establishment_type,
       },
     });
 

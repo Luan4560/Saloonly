@@ -182,6 +182,9 @@ importers:
       fastify-type-provider-zod:
         specifier: 4.0.2
         version: 4.0.2(fastify@5.3.3)(zod@3.24.2)
+      nodemailer:
+        specifier: ^8.0.1
+        version: 8.0.1
       pg:
         specifier: ^8.13.0
         version: 8.18.0
@@ -204,6 +207,9 @@ importers:
       '@types/bcryptjs':
         specifier: 3.0.0
         version: 3.0.0
+      '@types/nodemailer':
+        specifier: ^7.0.10
+        version: 7.0.10
       eslint:
         specifier: 9.23.0
         version: 9.23.0(jiti@2.6.1)
@@ -1587,6 +1593,9 @@ packages:
 
   '@types/node@22.19.11':
     resolution: {integrity: sha512-BH7YwL6rA93ReqeQS1c4bsPpcfOmJasG+Fkr6Y59q83f9M1WcBRHR2vM+P9eOisYRcN3ujQoiZY8uk5W+1WL8w==}
+
+  '@types/nodemailer@7.0.10':
+    resolution: {integrity: sha512-tP+9WggTFN22Zxh0XFyst7239H0qwiRCogsk7v9aQS79sYAJY+WEbTHbNYcxUMaalHKmsNpxmoTe35hBEMMd6g==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
@@ -3206,6 +3215,10 @@ packages:
 
   node-releases@2.0.27:
     resolution: {integrity: sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==}
+
+  nodemailer@8.0.1:
+    resolution: {integrity: sha512-5kcldIXmaEjZcHR6F28IKGSgpmZHaF1IXLWFTG+Xh3S+Cce4MiakLtWY+PlBU69fLbRa8HlaGIrC/QolUpHkhg==}
+    engines: {node: '>=6.0.0'}
 
   nypm@0.6.5:
     resolution: {integrity: sha512-K6AJy1GMVyfyMXRVB88700BJqNUkByijGJM8kEHpLdcAt+vSQAVfkWWHYzuRXHSY6xA2sNc5RjTj0p9rE2izVQ==}
@@ -5215,7 +5228,7 @@ snapshots:
       eslint: 9.23.0(jiti@2.6.1)
       eslint-config-prettier: 9.1.2(eslint@9.23.0(jiti@2.6.1))
       eslint-config-standard: 17.1.0(eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint@9.23.0(jiti@2.6.1)))(eslint-plugin-n@16.6.2(eslint@9.23.0(jiti@2.6.1)))(eslint-plugin-promise@6.6.0(eslint@9.23.0(jiti@2.6.1)))(eslint@9.23.0(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint@9.23.0(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint@9.23.0(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.23.0(jiti@2.6.1))
       eslint-plugin-n: 16.6.2(eslint@9.23.0(jiti@2.6.1))
       eslint-plugin-prettier: 5.5.5(eslint-config-prettier@9.1.2(eslint@9.23.0(jiti@2.6.1)))(eslint@9.23.0(jiti@2.6.1))(prettier@3.8.1)
@@ -5457,6 +5470,10 @@ snapshots:
   '@types/node@22.19.11':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/nodemailer@7.0.10':
+    dependencies:
+      '@types/node': 22.19.11
 
   '@types/react-dom@19.2.3(@types/react@19.2.14)':
     dependencies:
@@ -6435,7 +6452,7 @@ snapshots:
   eslint-config-standard@17.1.0(eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint@9.23.0(jiti@2.6.1)))(eslint-plugin-n@16.6.2(eslint@9.23.0(jiti@2.6.1)))(eslint-plugin-promise@6.6.0(eslint@9.23.0(jiti@2.6.1)))(eslint@9.23.0(jiti@2.6.1)):
     dependencies:
       eslint: 9.23.0(jiti@2.6.1)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint@9.23.0(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint@9.23.0(jiti@2.6.1))
       eslint-plugin-n: 16.6.2(eslint@9.23.0(jiti@2.6.1))
       eslint-plugin-promise: 6.6.0(eslint@9.23.0(jiti@2.6.1))
 
@@ -6447,11 +6464,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.23.0(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.23.0(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
-      '@typescript-eslint/parser': 6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/parser': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3)
       eslint: 9.23.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
     transitivePeerDependencies:
@@ -6464,7 +6481,7 @@ snapshots:
       eslint: 9.23.0(jiti@2.6.1)
       eslint-compat-utils: 0.5.1(eslint@9.23.0(jiti@2.6.1))
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint@9.23.0(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint@9.23.0(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -6475,7 +6492,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.23.0(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.23.0(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.23.0(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -6487,7 +6504,7 @@ snapshots:
       string.prototype.trimend: 1.0.9
       tsconfig-paths: 3.15.0
     optionalDependencies:
-      '@typescript-eslint/parser': 6.21.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/parser': 8.28.0(eslint@9.23.0(jiti@2.6.1))(typescript@5.8.3)
     transitivePeerDependencies:
       - eslint-import-resolver-typescript
       - eslint-import-resolver-webpack
@@ -7389,6 +7406,8 @@ snapshots:
   node-fetch-native@1.6.7: {}
 
   node-releases@2.0.27: {}
+
+  nodemailer@8.0.1: {}
 
   nypm@0.6.5:
     dependencies:
