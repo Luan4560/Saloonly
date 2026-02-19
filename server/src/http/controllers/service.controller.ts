@@ -5,6 +5,11 @@ import {
   createServiceSchema,
   updateServiceSchema,
 } from "@/schemas/service.schema";
+import {
+  paginationQuerySchema,
+  paginationSkipTake,
+  type PaginationQuery,
+} from "@/schemas/pagination.schema";
 import z from "zod";
 
 const DEFAULT_ESTABLISHMENT_TYPE = EstablishmentType.BARBERSHOP;
@@ -47,10 +52,12 @@ export async function createService(
 }
 
 export async function getServices(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Querystring: PaginationQuery }>,
   reply: FastifyReply,
 ) {
   try {
+    const query = paginationQuerySchema.parse(request.query ?? {});
+    const { skip, take } = paginationSkipTake(query);
     let establishmentId: string | undefined = request.user?.establishment_id;
     if (request.user?.id) {
       const user = await prisma.user.findUnique({
@@ -61,6 +68,8 @@ export async function getServices(
     }
     const services = await prisma.service.findMany({
       where: establishmentId ? { establishment_id: establishmentId } : undefined,
+      skip,
+      take,
     });
 
     return reply.code(200).send(services);

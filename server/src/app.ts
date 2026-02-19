@@ -1,5 +1,7 @@
 import fastify, { FastifyReply, FastifyRequest } from "fastify";
 import fCookie from "@fastify/cookie";
+import fastifyRateLimit from "@fastify/rate-limit";
+
 import fjwt, { FastifyJWT } from "@fastify/jwt";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { fastifySwagger } from "@fastify/swagger";
@@ -10,13 +12,16 @@ import { userRoutes } from "@/http/routes/user";
 import { collaboratorRoutes } from "@/http/routes/collaborator";
 import { servicesRoutes } from "@/http/routes/service";
 import { appointmentRoutes } from "@/http/routes/appointment";
+import { healthRoutes } from "@/http/routes/health";
+import { parseData } from "@/middlewares/parseData";
+import { registerSecurityHeaders } from "@/middlewares/securityHeaders";
+import { globalErrorHandler } from "@/lib/error-handler";
+import { env } from "@/env";
 import {
   validatorCompiler,
   serializerCompiler,
   jsonSchemaTransform,
 } from "fastify-type-provider-zod";
-import { parseData } from "@/middlewares/parseData";
-import { env } from "@/env";
 
 const SECRETJWT = env.JWT_SECRET;
 
@@ -32,6 +37,11 @@ app.register(fastifyCors, {
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
 });
+app.register(fastifyRateLimit, {
+  max: 100,
+  timeWindow: "15 minutes",
+});
+registerSecurityHeaders(app);
 app.register(fjwt, { secret: SECRETJWT });
 
 app.addHook("preHandler", (req, _, next) => {
@@ -78,6 +88,10 @@ app.register(fastifySwagger, {
 app.register(fastifySwaggerUi, {
   routePrefix: "/docs",
 });
+
+app.setErrorHandler(globalErrorHandler);
+
+app.register(healthRoutes);
 
 app.register(userRoutes, { prefix: "/api/admin/users" });
 app.register(establishmentRoutes, { prefix: "/api/admin/establishments" });

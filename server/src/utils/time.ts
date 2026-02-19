@@ -24,3 +24,19 @@ export function doTimeSlotsOverlap(
   const d = timeToMinutes(close2);
   return a < d && c < b;
 }
+
+/**
+ * Returns true if slot [slotOpen, slotClose] is fully within range [rangeOpen, rangeClose].
+ */
+export function isSlotWithinRange(
+  slotOpen: string,
+  slotClose: string,
+  rangeOpen: string,
+  rangeClose: string,
+): boolean {
+  const slotStart = timeToMinutes(slotOpen);
+  const slotEnd = timeToMinutes(slotClose);
+  const rangeStart = timeToMinutes(rangeOpen);
+  const rangeEnd = timeToMinutes(rangeClose);
+  return slotStart >= rangeStart && slotEnd <= rangeEnd;
+}

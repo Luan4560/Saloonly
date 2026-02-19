@@ -1,5 +1,7 @@
-import { Status, WorkingDaysEnum } from "@/lib/prisma";
 import z from "zod";
+
+import { Status, WorkingDaysEnum } from "@/lib/prisma";
+import { paginationQuerySchema } from "./pagination.schema";
 
 const firstLetterLower = (val: unknown) =>
   typeof val === "string" && val.length > 0
@@ -39,9 +41,11 @@ export const updateAppointmentStatusSchema = z.object({
   status: z.nativeEnum(Status),
 });
 
-export const getAppointmentsQuerySchema = z.object({
-  status: z.nativeEnum(Status).optional(),
-  date_from: z.coerce.date().optional(),
-  date_to: z.coerce.date().optional(),
-  establishment_id: z.string().uuid().optional(),
-});
+export const getAppointmentsQuerySchema = z
+  .object({
+    status: z.nativeEnum(Status).optional(),
+    date_from: z.coerce.date().optional(),
+    date_to: z.coerce.date().optional(),
+    establishment_id: z.string().uuid().optional(),
+  })
+  .merge(paginationQuerySchema);

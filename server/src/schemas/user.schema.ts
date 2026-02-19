@@ -61,3 +61,14 @@ export const resetPasswordSchema = z.object({
   token: z.string().min(1),
   newPassword: z.string().min(6),
 });
+
+export const updateProfileSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    email: z.string().email().optional(),
+  })
+  .refine((data) => data.name !== undefined || data.email !== undefined, {
+    message: "Envie ao menos um campo: name ou email",
+  });
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

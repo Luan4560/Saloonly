@@ -77,6 +77,10 @@ pnpm build
 
 Gera artefatos em `client/dist` e `server/build`. Em produção, sirva o frontend como estático e rode o server (Node) apontando para o mesmo host ou subdomínio, com `VITE_API_URL` apontando para a API pública.
 
+## Rate limiting
+
+A API aplica limite de requisições por IP: 100 requisições a cada 15 minutos (global). Rotas de autenticação têm limites mais restritos: registro e login (10/15 min), esqueci senha e redefinição (5/15 min).
+
 ## Documentação da API
 
 Com o server rodando, acesse:

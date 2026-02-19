@@ -1,13 +1,15 @@
+import z from "zod";
+
+import { doTimeSlotsOverlap, isSlotWithinRange } from "@/utils/time";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { Status } from "@/lib/prisma";
 import { prisma } from "@/lib/prisma";
+import { paginationSkipTake } from "@/schemas/pagination.schema";
 import {
   appointmentSchema,
   getAppointmentsQuerySchema,
   updateAppointmentStatusSchema,
 } from "@/schemas/appointment.schema";
-import { doTimeSlotsOverlap } from "@/utils/time";
-import { FastifyReply, FastifyRequest } from "fastify";
-import z from "zod";
-import { Status } from "@/lib/prisma";
 
 function toCivilDateKey(d: Date): string {
   const y = d.getUTCFullYear();
@@ -41,6 +43,68 @@ export async function createAppointment(
       });
     }
 
+    const dates = workingDays.map((d) => d.appointment_date);
+    const minD = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const maxD = new Date(Math.max(...dates.map((d) => d.getTime())));
+    const [establishmentWorkingDays, establishmentSpecialDates] =
+      await Promise.all([
+        prisma.workingDay.findMany({
+          where: { establishment_id, collaborator_id: null },
+        }),
+        prisma.specialDate.findMany({
+          where: {
+            establishment_id,
+            date: { gte: minD, lte: maxD },
+          },
+        }),
+      ]);
+
+    for (const day of workingDays) {
+      const dayKey = toCivilDateKey(day.appointment_date);
+      const special = establishmentSpecialDates.find(
+        (s) => toCivilDateKey(s.date) === dayKey,
+      );
+      if (special?.is_closed) {
+        return reply.code(400).send({
+          message: `O estabelecimento está fechado na data ${dayKey}.`,
+        });
+      }
+      const establishmentHours = establishmentWorkingDays.find(
+        (w) => w.day_of_week === day.day_of_week,
+      );
+      if (!establishmentHours) {
+        return reply.code(400).send({
+          message: `O estabelecimento não atende no dia ${day.day_of_week}.`,
+        });
+      }
+      if (
+        !isSlotWithinRange(
+          day.open_time,
+          day.close_time,
+          establishmentHours.open_time,
+          establishmentHours.close_time,
+        )
+      ) {
+        return reply.code(400).send({
+          message: `O horário do agendamento (${day.open_time}-${day.close_time}) está fora do expediente do estabelecimento (${establishmentHours.open_time}-${establishmentHours.close_time}) para ${day.day_of_week}.`,
+        });
+      }
+      if (special?.open_time != null && special?.close_time != null) {
+        if (
+          !isSlotWithinRange(
+            day.open_time,
+            day.close_time,
+            special.open_time,
+            special.close_time,
+          )
+        ) {
+          return reply.code(400).send({
+            message: `O horário do agendamento está fora do expediente especial na data ${dayKey}.`,
+          });
+        }
+      }
+    }
+
     for (let i = 0; i < workingDays.length; i++) {
       for (let j = i + 1; j < workingDays.length; j++) {
         const a = workingDays[i];
@@ -66,9 +130,6 @@ export async function createAppointment(
       }
     }
 
-    const dates = workingDays.map((d) => d.appointment_date);
-    const minD = new Date(Math.min(...dates.map((d) => d.getTime())));
-    const maxD = new Date(Math.max(...dates.map((d) => d.getTime())));
     const startOfMin = new Date(
       Date.UTC(
         minD.getUTCFullYear(),
@@ -194,7 +255,12 @@ export async function getAppointments(
       request.user?.establishment_id ??
       (request.query as { establishment_id?: string })?.establishment_id;
     const queryResult = getAppointmentsQuerySchema.safeParse(request.query);
-    const query = queryResult.success ? queryResult.data : {};
+    type Query = z.infer<typeof getAppointmentsQuerySchema>;
+    const query: Partial<Query> = queryResult.success ? queryResult.data : {};
+    const { skip, take } = paginationSkipTake({
+      page: query.page ?? 1,
+      limit: query.limit ?? 20,
+    });
 
     const where: {
       establishment_id?: string;
@@ -211,6 +277,8 @@ export async function getAppointments(
 
     const appointments = await prisma.appointment.findMany({
       where: Object.keys(where).length ? where : undefined,
+      skip,
+      take,
       include: {
         collaborator: true,
         establishment: {
@@ -246,6 +314,60 @@ export async function getAppointments(
   }
 }
 
+const appointmentInclude = {
+  collaborator: true,
+  establishment: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      address: true,
+      description: true,
+      image: true,
+      latitude: true,
+      longitude: true,
+    },
+  },
+  service: {
+    select: {
+      id: true,
+      description: true,
+      price: true,
+      duration: true,
+    },
+  },
+};
+
+export async function getAppointmentById(
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply,
+) {
+  try {
+    const { id } = request.params;
+    const appointment = await prisma.appointment.findUnique({
+      where: { id },
+      include: appointmentInclude,
+    });
+
+    if (!appointment) {
+      return reply.code(404).send({ message: "Appointment not found" });
+    }
+
+    const establishmentId = request.user?.establishment_id;
+    if (establishmentId && appointment.establishment_id !== establishmentId) {
+      return reply.code(403).send({ message: "Forbidden" });
+    }
+
+    return reply.code(200).send(appointment);
+  } catch (error) {
+    return reply.code(500).send({
+      message: "Internal server error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
+
 export async function updateAppointmentStatus(
   request: FastifyRequest<{
     Params: { id: string };
@@ -273,30 +395,7 @@ export async function updateAppointmentStatus(
     const updated = await prisma.appointment.update({
       where: { id },
       data: { status },
-      include: {
-        collaborator: true,
-        establishment: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            address: true,
-            description: true,
-            image: true,
-            latitude: true,
-            longitude: true,
-          },
-        },
-        service: {
-          select: {
-            id: true,
-            description: true,
-            price: true,
-            duration: true,
-          },
-        },
-      },
+      include: appointmentInclude,
     });
     return reply.code(200).send(updated);
   } catch (error) {

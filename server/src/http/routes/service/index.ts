@@ -1,3 +1,6 @@
+import { FastifyTypedInstance } from "@/types";
+import { paginationQuerySchema } from "@/schemas/pagination.schema";
+
 import {
   createService,
   deleteService,
@@ -5,12 +8,20 @@ import {
   getServices,
   updateService,
 } from "@/http/controllers/service.controller";
-import { FastifyTypedInstance } from "@/types";
 
 export function servicesRoutes(app: FastifyTypedInstance) {
   app.post("/register", { preHandler: [app.authenticate] }, createService);
 
-  app.get("/list", { preHandler: [app.authenticate] }, getServices);
+  app.get(
+    "/list",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        querystring: paginationQuerySchema,
+      },
+    },
+    getServices,
+  );
 
   app.get("/:id", { preHandler: [app.authenticate] }, getServiceById);
 

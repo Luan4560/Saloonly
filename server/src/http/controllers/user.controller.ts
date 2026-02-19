@@ -11,7 +11,13 @@ import {
   LoginUserInput,
   forgotPasswordSchema,
   resetPasswordSchema,
+  updateProfileSchema,
 } from "@/schemas/user.schema";
+import {
+  paginationQuerySchema,
+  paginationSkipTake,
+  type PaginationQuery,
+} from "@/schemas/pagination.schema";
 
 const SALT_ROUNDS = 10;
 
@@ -48,7 +54,6 @@ export async function createUser(
     const user = await prisma.user.create({
       data: {
         password: hashedPassword,
-        confirm_password: hashedPassword,
         email,
         name,
         role: validRole,
@@ -117,7 +122,7 @@ export async function login(
     ...(user.establishment_id && { establishment_id: user.establishment_id }),
   };
 
-  return { accessToken: token, user: userResponse };
+  return reply.code(201).send({ accessToken: token, user: userResponse });
 }
 
 export async function getMe(req: FastifyRequest, reply: FastifyReply) {
@@ -141,7 +146,55 @@ export async function getMe(req: FastifyRequest, reply: FastifyReply) {
   return reply.code(200).send(user);
 }
 
-export async function getUsers(req: FastifyRequest, reply: FastifyReply) {
+export async function updateMe(req: FastifyRequest, reply: FastifyReply) {
+  const userId = req.user?.id;
+  if (!userId) {
+    return reply.code(401).send({ message: "Unauthorized" });
+  }
+  const parsed = updateProfileSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return reply.code(400).send({
+      message: "Validation error",
+      errors: parsed.error.errors.map((e) => ({
+        field: e.path.join("."),
+        message: e.message,
+      })),
+    });
+  }
+  const { name, email } = parsed.data;
+  if (email !== undefined) {
+    const existing = await prisma.user.findFirst({
+      where: { email, id: { not: userId } },
+    });
+    if (existing) {
+      return reply.code(409).send({
+        message: "User already exists with this email",
+      });
+    }
+  }
+  const data: { name?: string; email?: string } = {};
+  if (name !== undefined) data.name = name;
+  if (email !== undefined) data.email = email;
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      establishment_id: true,
+    },
+  });
+  return reply.code(200).send(user);
+}
+
+export async function getUsers(
+  req: FastifyRequest<{ Querystring: PaginationQuery }>,
+  reply: FastifyReply,
+) {
+  const query = paginationQuerySchema.parse(req.query ?? {});
+  const { skip, take } = paginationSkipTake(query);
   const users = await prisma.user.findMany({
     select: {
       id: true,
@@ -150,6 +203,8 @@ export async function getUsers(req: FastifyRequest, reply: FastifyReply) {
       role: true,
       phone: true,
     },
+    skip,
+    take,
   });
 
   return reply.code(200).send(users);
@@ -240,10 +295,7 @@ export async function resetPassword(req: FastifyRequest, reply: FastifyReply) {
   await prisma.$transaction([
     prisma.user.update({
       where: { id: record.user_id },
-      data: {
-        password: hashedPassword,
-        confirm_password: hashedPassword,
-      },
+      data: { password: hashedPassword },
     }),
     prisma.passwordResetToken.delete({ where: { id: record.id } }),
   ]);

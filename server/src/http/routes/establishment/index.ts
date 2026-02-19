@@ -1,4 +1,6 @@
 import { FastifyTypedInstance } from "@/types";
+import { paginationQuerySchema } from "@/schemas/pagination.schema";
+
 import {
   deleteEstablishment,
   getEstablishmentById,
@@ -25,7 +27,7 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
         },
       },
     },
-    registerEstablishment
+    registerEstablishment,
   );
 
   app.get(
@@ -35,9 +37,10 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
       schema: {
         tags: ["Establishment"],
         description: "List all establishments",
+        querystring: paginationQuerySchema,
       },
     },
-    getEstablishments
+    getEstablishments,
   );
 
   app.get(
@@ -49,7 +52,7 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
         description: "Get establishment by id",
       },
     },
-    getEstablishmentById
+    getEstablishmentById,
   );
 
   app.patch(
@@ -61,7 +64,7 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
         description: "Update establishment",
       },
     },
-    updateEstablishment
+    updateEstablishment,
   );
 
   app.delete(
@@ -73,6 +76,6 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
         description: "Delete establishment",
       },
     },
-    deleteEstablishment
+    deleteEstablishment,
   );
 }

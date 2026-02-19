@@ -74,7 +74,6 @@ model User {
   phone              String?
   email              String               @unique
   password           String
-  confirm_password   String               @default("")
   role               Role                 @default(ADMIN)
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
@@ -125,7 +124,7 @@ model Service {
   id                 String            @id @default(uuid())
   description        String?
   price              Decimal           @db.Decimal(10, 2)
-  duration           Int // duration in minutes
+  duration           Int
   establishment_type EstablishmentType
   active             Boolean           @default(true)
   created_at         DateTime          @default(now())

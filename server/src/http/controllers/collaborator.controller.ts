@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import {
+  paginationQuerySchema,
+  paginationSkipTake,
+  type PaginationQuery,
+} from "@/schemas/pagination.schema";
+import {
   registerCollaboratorSchema,
   updateCollaboratorSchema,
 } from "@/schemas/collaborator.schema";
@@ -45,15 +50,19 @@ export async function createCollaborator(
 }
 
 export async function getAllCollaborators(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Querystring: PaginationQuery }>,
   reply: FastifyReply,
 ) {
   try {
+    const query = paginationQuerySchema.parse(request.query ?? {});
+    const { skip, take } = paginationSkipTake(query);
     const establishmentId = request.user?.establishment_id;
     const collaborators = await prisma.collaborator.findMany({
       where: establishmentId
         ? { establishment_id: establishmentId }
         : undefined,
+      skip,
+      take,
     });
     return reply.code(200).send(collaborators);
   } catch (error) {

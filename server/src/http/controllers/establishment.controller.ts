@@ -8,6 +8,11 @@ import {
   registerEstablishmentSchemaResponse,
   updateEstablishmentSchema,
 } from "@/schemas/establishment.schema";
+import {
+  paginationQuerySchema,
+  paginationSkipTake,
+  type PaginationQuery,
+} from "@/schemas/pagination.schema";
 
 const SALT_ROUNDS = 10;
 
@@ -200,10 +205,12 @@ export async function registerEstablishment(
 }
 
 export async function getEstablishments(
-  request: FastifyRequest,
+  request: FastifyRequest<{ Querystring: PaginationQuery }>,
   reply: FastifyReply,
 ) {
   try {
+    const query = paginationQuerySchema.parse(request.query ?? {});
+    const { skip, take } = paginationSkipTake(query);
     let establishmentId: string | undefined = request.user?.establishment_id;
     if (request.user?.id) {
       const user = await prisma.user.findUnique({
@@ -223,6 +230,8 @@ export async function getEstablishments(
         WorkingDay: true,
         SpecialDate: true,
       },
+      skip,
+      take,
     });
 
     if (!establishments || establishments.length === 0) {

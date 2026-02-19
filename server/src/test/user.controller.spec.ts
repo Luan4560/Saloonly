@@ -30,7 +30,6 @@ describe("User Controller", () => {
     const user = await prisma.user.create({
       data: {
         password: "hashed",
-        confirm_password: "hashed",
         email: mockUser.email,
         name: mockUser.name,
         role: mockUser.role,

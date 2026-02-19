@@ -1,3 +1,6 @@
+import { FastifyTypedInstance } from "@/types";
+import { paginationQuerySchema } from "@/schemas/pagination.schema";
+
 import {
   createCollaborator,
   deleteCollaborator,
@@ -5,7 +8,6 @@ import {
   getCollaboratorById,
   updateCollaborator,
 } from "@/http/controllers/collaborator.controller";
-import { FastifyTypedInstance } from "@/types";
 
 export async function collaboratorRoutes(app: FastifyTypedInstance) {
   app.post(
@@ -17,7 +19,7 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
         description: "Create a new collaborator",
       },
     },
-    createCollaborator
+    createCollaborator,
   );
 
   app.get(
@@ -27,9 +29,10 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
       schema: {
         tags: ["Collaborator"],
         description: "Get all collaborators",
+        querystring: paginationQuerySchema,
       },
     },
-    getAllCollaborators
+    getAllCollaborators,
   );
 
   app.get(
@@ -41,7 +44,7 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
         description: "Get a collaborator by id",
       },
     },
-    getCollaboratorById
+    getCollaboratorById,
   );
 
   app.patch(
@@ -53,7 +56,7 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
         description: "Update a collaborator",
       },
     },
-    updateCollaborator
+    updateCollaborator,
   );
 
   app.delete(
@@ -65,6 +68,6 @@ export async function collaboratorRoutes(app: FastifyTypedInstance) {
         description: "Delete a collaborator",
       },
     },
-    deleteCollaborator
+    deleteCollaborator,
   );
 }
