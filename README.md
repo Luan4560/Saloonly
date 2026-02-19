@@ -23,15 +23,15 @@ pnpm install
 
 ### 2. Variáveis de ambiente
 
-**Server** – copie `server/.env.example` para `server/.env` e preencha:
+**Server e Prisma** – use um único `.env` na raiz do projeto. Copie `server/.env.example` para `.env` (na raiz) e preencha:
 
 - `DATABASE_URL` – conexão PostgreSQL (ex.: `postgresql://user:pass@localhost:5432/saloonly?schema=public`)
 - `JWT_SECRET` – segredo para assinatura do JWT (mín. 32 caracteres)
-- `COOKIE_SECRET` – segredo para cookie (mín. 32 caracteres)
+- `COOKIE_SECRET` – segredo para cookie (mín. 32 caracteres; em dev é opcional)
 - `PORT` – porta do servidor (padrão 8080)
 - `FRONTEND_URL` – URL do frontend para links de recuperação de senha (ex.: `http://localhost:5173` em dev; em produção use a URL pública do app)
 
-Se o server não iniciar com `Error: Invalid environment variables`, confira se `server/.env` existe e se `JWT_SECRET`, `DATABASE_URL` e `COOKIE_SECRET` estão definidos (e `COOKIE_SECRET` com 32+ caracteres).
+Se o server não iniciar com `Error: Invalid environment variables`, confira se o `.env` na raiz existe e se `JWT_SECRET` e `DATABASE_URL` estão definidos (e `COOKIE_SECRET` com 32+ caracteres em produção). Se `pnpm db:migrate` falhar com "DATABASE_URL is not set", defina `DATABASE_URL` no `.env` da raiz (veja `server/.env.example`).
 
 **Client** – copie `client/.env.example` para `client/.env`:
 
@@ -96,7 +96,7 @@ pnpm docker:up
 pnpm docker:down
 ```
 
-Ajuste `DATABASE_URL` no `.env` do server para o host/porta do PostgreSQL no Docker.
+Ajuste `DATABASE_URL` no `.env` da raiz para o host/porta do PostgreSQL no Docker.
 
 ## Scripts principais
 

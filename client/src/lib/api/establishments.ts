@@ -1,6 +1,26 @@
 import { api } from "./axios";
 import type { AuthUser } from "@/stores/authStore";
 
+export interface WorkingDay {
+  id: string;
+  day_of_week: string;
+  open_time: string;
+  close_time: string;
+  establishment_id: string;
+  collaborator_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SpecialDate {
+  id: string;
+  date: string;
+  is_closed: boolean;
+  open_time?: string | null;
+  close_time?: string | null;
+  establishment_id: string;
+}
+
 export interface Establishment {
   id: string;
   name: string;
@@ -9,6 +29,8 @@ export interface Establishment {
   address: string;
   description?: string;
   image: string;
+  workingDay?: WorkingDay[];
+  specialDate?: SpecialDate[];
 }
 
 export interface CreateEstablishmentResponse extends Establishment {
@@ -68,6 +90,13 @@ export async function updateEstablishment(
     email?: string;
     address?: string;
     image?: string;
+    workingDays?: { day_of_week: string; open_time: string; close_time: string }[];
+    specialDates?: {
+      date: string;
+      is_closed: boolean;
+      open_time?: string;
+      close_time?: string;
+    }[];
   },
 ) {
   const { data } = await api.patch(`/admin/establishments/${id}`, body);

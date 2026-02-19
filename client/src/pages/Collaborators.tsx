@@ -1,5 +1,13 @@
 import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
 import {
   Form,
   FormControl,
@@ -8,7 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+
 import {
   Sheet,
   SheetContent,
@@ -24,12 +32,6 @@ import {
   getEstablishments,
   type Collaborator,
 } from "@/lib/api";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Pencil, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
 
 const collaboratorFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -39,6 +41,42 @@ const collaboratorFormSchema = z.object({
 });
 
 type CollaboratorFormValues = z.infer<typeof collaboratorFormSchema>;
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase() || "?";
+}
+
+function CollaboratorAvatar({
+  name,
+  avatar,
+}: {
+  name: string;
+  avatar?: string | null;
+}) {
+  const [imageError, setImageError] = useState(false);
+  const showImage = avatar && !imageError;
+
+  return (
+    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-muted shrink-0 overflow-hidden">
+      {showImage ? (
+        <img
+          src={avatar}
+          alt={name}
+          className="w-full h-full object-cover"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <span className="text-xs font-medium text-muted-foreground">
+          {getInitials(name)}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function Collaborators() {
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
@@ -64,8 +102,12 @@ export default function Collaborators() {
         getCollaborators(),
         getEstablishments(),
       ]);
-      setCollaborators(Array.isArray(collaboratorsData) ? collaboratorsData : []);
-      setEstablishments(Array.isArray(establishmentsData) ? establishmentsData : []);
+      setCollaborators(
+        Array.isArray(collaboratorsData) ? collaboratorsData : [],
+      );
+      setEstablishments(
+        Array.isArray(establishmentsData) ? establishmentsData : [],
+      );
     } catch {
       toast.error("Erro ao carregar dados");
     } finally {
@@ -202,7 +244,11 @@ export default function Collaborators() {
                       <FormItem>
                         <FormLabel>E-mail</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="email@exemplo.com" {...field} />
+                          <Input
+                            type="email"
+                            placeholder="email@exemplo.com"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -241,6 +287,7 @@ export default function Collaborators() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
+                  <th className="text-left p-3 font-medium w-14">Avatar</th>
                   <th className="text-left p-3 font-medium">Nome</th>
                   <th className="text-left p-3 font-medium">Telefone</th>
                   <th className="text-left p-3 font-medium">E-mail</th>
@@ -250,6 +297,9 @@ export default function Collaborators() {
               <tbody>
                 {collaborators.map((c) => (
                   <tr key={c.id} className="border-b">
+                    <td className="p-3">
+                      <CollaboratorAvatar name={c.name} avatar={c.avatar} />
+                    </td>
                     <td className="p-3">{c.name}</td>
                     <td className="p-3">{c.phone}</td>
                     <td className="p-3">{c.email}</td>

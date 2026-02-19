@@ -5,7 +5,6 @@ export interface Appointment {
   user_id: string;
   collaborator_id: string;
   establishment_id: string;
-  service_id: string;
   status: string;
   appointment_date: string;
   day_of_week: string;
@@ -13,12 +12,12 @@ export interface Appointment {
   close_time: string;
   collaborator?: { id: string; name: string; email: string };
   establishment?: { id: string; name: string };
-  service?: {
+  services?: Array<{
     id: string;
     description: string | null;
     price: number | string;
     duration: number;
-  };
+  }>;
 }
 
 export async function getAppointments(params?: {
@@ -34,7 +33,7 @@ export async function createAppointment(body: {
   user_id?: string;
   establishment_id: string;
   collaborator_id: string;
-  service_id: string;
+  service_ids: string[];
   appointment_date?: string;
   workingDays: {
     day_of_week: string;

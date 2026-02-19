@@ -30,7 +30,9 @@ export const appointmentSchema = z.object({
   user_id: z.string().uuid().optional(),
   establishment_id: z.string().uuid(),
   collaborator_id: z.string().uuid(),
-  service_id: z.string().uuid(),
+  service_ids: z
+    .array(z.string().uuid())
+    .min(1, "Pelo menos um serviço é obrigatório"),
   appointment_date: z.coerce.date().optional(),
   workingDays: z
     .array(workingDaySchema)

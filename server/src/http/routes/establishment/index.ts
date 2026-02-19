@@ -9,7 +9,7 @@ import {
   updateEstablishment,
 } from "@/http/controllers/establishment.controller";
 import {
-  registerEstablishmentResponseSchema,
+  registerEstablishmentFullResponseSchema,
   registerEstablishmentSchemaResponse,
 } from "@/schemas/establishment.schema";
 
@@ -23,7 +23,7 @@ export async function establishmentRoutes(app: FastifyTypedInstance) {
         description: "Register establishment",
         body: registerEstablishmentSchemaResponse.schema.body,
         response: {
-          201: registerEstablishmentResponseSchema,
+          201: registerEstablishmentFullResponseSchema,
         },
       },
     },

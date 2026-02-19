@@ -24,7 +24,7 @@ export async function createAppointment(
 ) {
   try {
     const parsed = appointmentSchema.parse(request.body);
-    const { establishment_id, collaborator_id, service_id, workingDays } =
+    const { establishment_id, collaborator_id, service_ids, workingDays } =
       parsed;
     const user_id = parsed.user_id ?? request.user?.id;
     if (!user_id) {
@@ -153,6 +153,16 @@ export async function createAppointment(
       ),
     );
 
+    const servicesList = await prisma.service.findMany({
+      where: { id: { in: service_ids } },
+      select: { id: true, duration: true },
+    });
+    if (servicesList.length !== service_ids.length) {
+      return reply.code(400).send({
+        message: "Um ou mais serviços não foram encontrados.",
+      });
+    }
+
     const existingAppointments = await prisma.appointment.findMany({
       where: {
         collaborator_id,
@@ -189,11 +199,11 @@ export async function createAppointment(
             user_id,
             establishment_id,
             collaborator_id,
-            service_id,
             day_of_week: day.day_of_week,
             open_time: day.open_time,
             close_time: day.close_time,
             appointment_date: day.appointment_date,
+            services: { connect: service_ids.map((id) => ({ id })) },
           },
           include: {
             establishment: {
@@ -210,7 +220,7 @@ export async function createAppointment(
               },
             },
             collaborator: true,
-            service: {
+            services: {
               select: {
                 id: true,
                 description: true,
@@ -294,7 +304,7 @@ export async function getAppointments(
             longitude: true,
           },
         },
-        service: {
+        services: {
           select: {
             id: true,
             description: true,
@@ -329,7 +339,7 @@ const appointmentInclude = {
       longitude: true,
     },
   },
-  service: {
+  services: {
     select: {
       id: true,
       description: true,

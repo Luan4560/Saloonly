@@ -49,7 +49,8 @@ export const useAuthStore = create<AuthState>()(
       login: (token: string, user?: AuthUser | null) =>
         set({
           accessToken: token,
-          establishmentId: user?.establishment_id ?? null,
+          establishmentId:
+            user?.establishment_id ?? getEstablishmentIdFromToken(token) ?? null,
         }),
       logout: () => set({ accessToken: null, establishmentId: null }),
       setEstablishmentId: (id: string | null) => set({ establishmentId: id }),

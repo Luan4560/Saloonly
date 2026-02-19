@@ -315,20 +315,70 @@ export async function updateEstablishment(
     if (body.address !== undefined) data.address = body.address;
     if (body.image !== undefined) data.image = body.image;
 
-    const establishment = await prisma.establishment.update({
-      where: {
-        id: establishment_id,
-      },
-      data,
-      include: {
-        Collaborator: true,
-        Service: true,
-        WorkingDay: true,
-        SpecialDate: true,
-      },
+    const establishment = await prisma.$transaction(async (tx) => {
+      const updated = await tx.establishment.update({
+        where: { id: establishment_id },
+        data,
+        include: {
+          Collaborator: true,
+          Service: true,
+          WorkingDay: true,
+          SpecialDate: true,
+        },
+      });
+
+      if (body.workingDays !== undefined) {
+        await tx.workingDay.deleteMany({
+          where: {
+            establishment_id,
+            collaborator_id: null,
+          },
+        });
+        if (body.workingDays.length > 0) {
+          await tx.workingDay.createMany({
+            data: body.workingDays.map((day) => ({
+              establishment_id,
+              day_of_week: day.day_of_week,
+              open_time: day.open_time,
+              close_time: day.close_time,
+            })),
+          });
+        }
+      }
+
+      if (body.specialDates !== undefined) {
+        await tx.specialDate.deleteMany({
+          where: { establishment_id },
+        });
+        if (body.specialDates.length > 0) {
+          await tx.specialDate.createMany({
+            data: body.specialDates.map((date) => ({
+              establishment_id,
+              date: date.date,
+              is_closed: date.is_closed,
+              open_time: date.open_time,
+              close_time: date.close_time,
+            })),
+          });
+        }
+      }
+
+      if (body.workingDays !== undefined || body.specialDates !== undefined) {
+        return tx.establishment.findUnique({
+          where: { id: establishment_id },
+          include: {
+            Collaborator: true,
+            Service: true,
+            WorkingDay: true,
+            SpecialDate: true,
+          },
+        });
+      }
+      return updated;
     });
 
-    return reply.code(200).send(transformObjectKeys(establishment));
+    const result = establishment!;
+    return reply.code(200).send(transformObjectKeys(result));
   } catch (error) {
     if (error instanceof z.ZodError) {
       return reply.code(400).send({

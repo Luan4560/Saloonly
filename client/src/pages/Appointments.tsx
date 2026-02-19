@@ -65,7 +65,9 @@ const createFormSchema = z
   .object({
     establishment_id: z.string().min(1, "Selecione o estabelecimento"),
     collaborator_id: z.string().min(1, "Selecione o colaborador"),
-    service_id: z.string().min(1, "Selecione o serviço"),
+    service_ids: z
+      .array(z.string())
+      .min(1, "Selecione pelo menos um serviço"),
     appointment_date: z.string().min(1, "Data é obrigatória"),
     open_time: z.string().min(1, "Horário de início é obrigatório"),
     close_time: z.string().min(1, "Horário de fim é obrigatório"),
@@ -107,7 +109,7 @@ export default function Appointments() {
     defaultValues: {
       establishment_id: "",
       collaborator_id: "",
-      service_id: "",
+      service_ids: [],
       appointment_date: "",
       open_time: "08:00",
       close_time: "18:00",
@@ -146,15 +148,15 @@ export default function Appointments() {
       .catch(() => toast.error("Erro ao carregar dados"));
   }, [sheetOpen]);
 
-  const serviceId = form.watch("service_id");
+  const serviceIds = form.watch("service_ids") ?? [];
   const openTime = form.watch("open_time");
+  const totalDuration = services
+    .filter((s) => serviceIds.includes(s.id))
+    .reduce((acc, s) => acc + (s.duration ?? 0), 0);
   useEffect(() => {
-    if (!serviceId || !openTime) return;
-    const service = services.find((s) => s.id === serviceId);
-    if (service?.duration != null) {
-      form.setValue("close_time", addMinutesToTime(openTime, service.duration));
-    }
-  }, [serviceId, openTime, services]);
+    if (!openTime || totalDuration <= 0) return;
+    form.setValue("close_time", addMinutesToTime(openTime, totalDuration));
+  }, [openTime, totalDuration]);
 
   async function onCreateSubmit(values: CreateFormValues) {
     const d = new Date(values.appointment_date + "T12:00:00");
@@ -163,7 +165,7 @@ export default function Appointments() {
       await createAppointment({
         establishment_id: values.establishment_id,
         collaborator_id: values.collaborator_id,
-        service_id: values.service_id,
+        service_ids: values.service_ids,
         workingDays: [
           {
             day_of_week,
@@ -269,23 +271,42 @@ export default function Appointments() {
                   />
                   <FormField
                     control={form.control}
-                    name="service_id"
+                    name="service_ids"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Serviço</FormLabel>
+                        <FormLabel>Serviços</FormLabel>
                         <FormControl>
-                          <select
-                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                            {...field}
-                          >
-                            <option value="">Selecione</option>
+                          <div className="flex flex-col gap-2 rounded-md border border-input p-3 max-h-48 overflow-y-auto">
                             {services.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                {s.description ?? s.id} ({s.duration} min)
-                              </option>
+                              <label
+                                key={s.id}
+                                className="flex items-center gap-2 cursor-pointer text-sm"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={(field.value ?? []).includes(s.id)}
+                                  onChange={(e) => {
+                                    const prev = field.value ?? [];
+                                    if (e.target.checked) {
+                                      field.onChange([...prev, s.id]);
+                                    } else {
+                                      field.onChange(prev.filter((id) => id !== s.id));
+                                    }
+                                  }}
+                                  className="rounded border-input"
+                                />
+                                <span>
+                                  {s.description ?? s.id} ({s.duration} min)
+                                </span>
+                              </label>
                             ))}
-                          </select>
+                          </div>
                         </FormControl>
+                        {totalDuration > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            Duração total: {totalDuration} min
+                          </p>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -410,7 +431,11 @@ export default function Appointments() {
                     </td>
                     <td className="p-3">{a.establishment?.name ?? "-"}</td>
                     <td className="p-3">
-                      {a.service?.description ?? "-"}
+                      {a.services?.length
+                        ? a.services
+                            .map((s) => s.description ?? s.id)
+                            .join(", ")
+                        : "-"}
                     </td>
                     <td className="p-3">{a.collaborator?.name ?? "-"}</td>
                     <td className="p-3">

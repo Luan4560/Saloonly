@@ -68,6 +68,20 @@ export const registerEstablishmentResponseSchema = z.object({
   specialDate: z.array(specialDateResponseSchema),
 });
 
+const registerEstablishmentUserResponseSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  name: z.string().nullable(),
+  role: z.string(),
+  establishment_id: z.string(),
+});
+
+export const registerEstablishmentFullResponseSchema =
+  registerEstablishmentResponseSchema.extend({
+    accessToken: z.string().optional(),
+    user: registerEstablishmentUserResponseSchema.optional(),
+  });
+
 const serviceSchema = z
   .array(
     z.object({
@@ -142,6 +156,8 @@ export const updateEstablishmentSchema = z.object({
   email: z.string().email().optional(),
   address: z.string().optional(),
   image: z.string().optional(),
+  workingDays: workingDaysSchema.optional(),
+  specialDates: specialDateSchema.optional(),
 });
 
 export type UpdateEstablishmentInput = z.infer<

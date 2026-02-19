@@ -18,6 +18,31 @@ import { useAuthStore } from "@/stores/authStore";
 import { useEffect } from "react";
 import Logo from "@/assets/logo.svg";
 
+const DAYS_OF_WEEK = [
+  { value: "MONDAY", label: "Segunda-feira" },
+  { value: "TUESDAY", label: "Terça-feira" },
+  { value: "WEDNESDAY", label: "Quarta-feira" },
+  { value: "THURSDAY", label: "Quinta-feira" },
+  { value: "FRIDAY", label: "Sexta-feira" },
+  { value: "SATURDAY", label: "Sábado" },
+  { value: "SUNDAY", label: "Domingo" },
+] as const;
+
+const defaultWorkingDaysForm: {
+  day_of_week: string;
+  open: boolean;
+  open_time: string;
+  close_time: string;
+}[] = [
+  { day_of_week: "MONDAY", open: true, open_time: "08:00", close_time: "18:00" },
+  { day_of_week: "TUESDAY", open: true, open_time: "08:00", close_time: "18:00" },
+  { day_of_week: "WEDNESDAY", open: true, open_time: "08:00", close_time: "18:00" },
+  { day_of_week: "THURSDAY", open: true, open_time: "08:00", close_time: "18:00" },
+  { day_of_week: "FRIDAY", open: true, open_time: "08:00", close_time: "18:00" },
+  { day_of_week: "SATURDAY", open: true, open_time: "08:00", close_time: "12:00" },
+  { day_of_week: "SUNDAY", open: false, open_time: "08:00", close_time: "12:00" },
+];
+
 const establishmentFormSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   phone: z.string().min(1, "Telefone é obrigatório"),
@@ -26,13 +51,20 @@ const establishmentFormSchema = z.object({
   description: z.string().optional(),
   image: z.string().min(1, "URL da imagem é obrigatória"),
   password: z.string().min(6, "Senha com no mínimo 6 caracteres"),
+  workingDays: z
+    .array(
+      z.object({
+        day_of_week: z.string(),
+        open: z.boolean(),
+        open_time: z.string().min(1, "Horário de abertura"),
+        close_time: z.string().min(1, "Horário de fechamento"),
+      })
+    )
+    .length(7)
+    .refine((arr) => arr.some((d) => d.open), "Selecione ao menos um dia de atendimento"),
 });
 
 type EstablishmentFormValues = z.infer<typeof establishmentFormSchema>;
-
-const defaultWorkingDays = [
-  { day_of_week: "MONDAY", open_time: "08:00", close_time: "18:00" },
-];
 
 export default function RegisterEstablishment() {
   const navigate = useNavigate();
@@ -54,10 +86,18 @@ export default function RegisterEstablishment() {
       description: "",
       image: "",
       password: "",
+      workingDays: defaultWorkingDaysForm,
     },
   });
 
   async function onSubmit(values: EstablishmentFormValues) {
+    const workingDaysPayload = values.workingDays
+      .filter((d) => d.open)
+      .map((d) => ({
+        day_of_week: d.day_of_week,
+        open_time: d.open_time,
+        close_time: d.close_time,
+      }));
     try {
       const data = await createEstablishment({
         name: values.name,
@@ -67,10 +107,15 @@ export default function RegisterEstablishment() {
         description: values.description || undefined,
         image: values.image,
         password: values.password,
-        workingDays: defaultWorkingDays,
+        workingDays: workingDaysPayload,
       });
       if (data.accessToken && data.user) {
         useAuthStore.getState().login(data.accessToken, data.user);
+        if (data.id) useAuthStore.getState().setEstablishmentId(data.id);
+        toast.success("Estabelecimento cadastrado com sucesso!");
+        navigate("/dashboard", { replace: true });
+      } else if (data.id) {
+        useAuthStore.getState().setEstablishmentId(data.id);
         toast.success("Estabelecimento cadastrado com sucesso!");
         navigate("/dashboard", { replace: true });
       }
@@ -207,6 +252,80 @@ export default function RegisterEstablishment() {
                 </FormItem>
               )}
             />
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Horário de atendimento</p>
+              <p className="text-xs text-muted-foreground">
+                Marque os dias em que o estabelecimento abre e defina os horários.
+              </p>
+              <div className="rounded-md border p-3 space-y-3">
+                {DAYS_OF_WEEK.map((day, i) => (
+                  <div
+                    key={day.value}
+                    className="flex flex-wrap items-center gap-2 gap-y-2"
+                  >
+                    <div className="w-28 text-sm">{day.label}</div>
+                    <FormField
+                      control={form.control}
+                      name={`workingDays.${i}.open`}
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2 space-y-0">
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              checked={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              className="h-4 w-4 rounded border-input"
+                            />
+                          </FormControl>
+                          <FormLabel className="mt-0! text-sm font-normal">
+                            Aberto
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`workingDays.${i}.open_time`}
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input
+                              type="time"
+                              {...field}
+                              disabled={!form.watch(`workingDays.${i}.open`)}
+                              className="w-28"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <span className="text-muted-foreground text-sm">até</span>
+                    <FormField
+                      control={form.control}
+                      name={`workingDays.${i}.close_time`}
+                      render={({ field }) => (
+                        <FormItem className="space-y-0">
+                          <FormControl>
+                            <Input
+                              type="time"
+                              {...field}
+                              disabled={!form.watch(`workingDays.${i}.open`)}
+                              className="w-28"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ))}
+              </div>
+              {form.formState.errors.workingDays?.message && (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.workingDays.message}
+                </p>
+              )}
+            </div>
             <Button type="submit" className="w-full">
               Cadastrar e continuar
             </Button>

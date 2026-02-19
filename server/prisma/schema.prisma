@@ -103,7 +103,6 @@ model Appointment {
   user_id          String
   collaborator_id  String
   establishment_id String
-  service_id       String
   status           Status        @default(PENDING)
   created_at       DateTime      @default(now())
   updated_at       DateTime      @updatedAt
@@ -114,7 +113,7 @@ model Appointment {
   user             User          @relation(fields: [user_id], references: [id])
   collaborator     Collaborator  @relation(fields: [collaborator_id], references: [id])
   establishment    Establishment @relation(fields: [establishment_id], references: [id])
-  service          Service       @relation(fields: [service_id], references: [id])
+  services         Service[]
 
   @@index([created_at, updated_at])
   @@map("appointments")
@@ -131,7 +130,7 @@ model Service {
   updated_at         DateTime          @updatedAt
   establishment      Establishment?    @relation(fields: [establishment_id], references: [id])
   establishment_id   String?
-  appointments       Appointment[]
+  appointments       Appointment[]  // many-to-many
 
   @@index([establishment_type])
   @@map("services")
