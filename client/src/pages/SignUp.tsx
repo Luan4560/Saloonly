@@ -19,7 +19,7 @@ export default function SignUp() {
 
   return (
     <div className="w-full h-screen flex flex-col items-center">
-      <div className="w-full flex items-center justify-center mb-[-3rem]">
+      <div className="w-full flex items-center justify-center -mb-12">
         <img
           src={Logo}
           alt="saloonly-image-logo"
