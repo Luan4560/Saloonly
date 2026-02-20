@@ -2,7 +2,7 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -45,13 +45,48 @@ const defaultWorkingDaysForm: {
   open_time: string;
   close_time: string;
 }[] = [
-  { day_of_week: "MONDAY", open: true, open_time: "08:00", close_time: "18:00" },
-  { day_of_week: "TUESDAY", open: true, open_time: "08:00", close_time: "18:00" },
-  { day_of_week: "WEDNESDAY", open: true, open_time: "08:00", close_time: "18:00" },
-  { day_of_week: "THURSDAY", open: true, open_time: "08:00", close_time: "18:00" },
-  { day_of_week: "FRIDAY", open: true, open_time: "08:00", close_time: "18:00" },
-  { day_of_week: "SATURDAY", open: true, open_time: "08:00", close_time: "12:00" },
-  { day_of_week: "SUNDAY", open: false, open_time: "08:00", close_time: "12:00" },
+  {
+    day_of_week: "MONDAY",
+    open: true,
+    open_time: "08:00",
+    close_time: "18:00",
+  },
+  {
+    day_of_week: "TUESDAY",
+    open: true,
+    open_time: "08:00",
+    close_time: "18:00",
+  },
+  {
+    day_of_week: "WEDNESDAY",
+    open: true,
+    open_time: "08:00",
+    close_time: "18:00",
+  },
+  {
+    day_of_week: "THURSDAY",
+    open: true,
+    open_time: "08:00",
+    close_time: "18:00",
+  },
+  {
+    day_of_week: "FRIDAY",
+    open: true,
+    open_time: "08:00",
+    close_time: "18:00",
+  },
+  {
+    day_of_week: "SATURDAY",
+    open: true,
+    open_time: "08:00",
+    close_time: "12:00",
+  },
+  {
+    day_of_week: "SUNDAY",
+    open: false,
+    open_time: "08:00",
+    close_time: "12:00",
+  },
 ];
 
 function buildWorkingDaysForm(workingDay?: Establishment["workingDay"]) {
@@ -59,8 +94,18 @@ function buildWorkingDaysForm(workingDay?: Establishment["workingDay"]) {
   return DAYS_OF_WEEK.map((day) => {
     const w = workingDay.find((d) => d.day_of_week === day.value);
     return w
-      ? { day_of_week: day.value, open: true, open_time: w.open_time, close_time: w.close_time }
-      : { day_of_week: day.value, open: false, open_time: "08:00", close_time: "12:00" };
+      ? {
+          day_of_week: day.value,
+          open: true,
+          open_time: w.open_time,
+          close_time: w.close_time,
+        }
+      : {
+          day_of_week: day.value,
+          open: false,
+          open_time: "08:00",
+          close_time: "12:00",
+        };
   });
 }
 
@@ -84,10 +129,13 @@ const establishmentFormSchema = z.object({
         open: z.boolean(),
         open_time: z.string().min(1, "Horário de abertura"),
         close_time: z.string().min(1, "Horário de fechamento"),
-      })
+      }),
     )
     .length(7)
-    .refine((arr) => arr.some((d) => d.open), "Selecione ao menos um dia de atendimento"),
+    .refine(
+      (arr) => arr.some((d) => d.open),
+      "Selecione ao menos um dia de atendimento",
+    ),
 });
 
 type EstablishmentFormValues = z.infer<typeof establishmentFormSchema>;
@@ -113,21 +161,21 @@ export default function Establishments() {
     },
   });
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getEstablishments();
       setEstablishments(Array.isArray(data) ? data : []);
     } catch {
-      toast.error("Erro ao carregar estabelecimentos");
+      toast.error("Erro ao carregar dados do negócio.");
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   async function onSubmit(values: EstablishmentFormValues) {
     if (!editingId) return;
@@ -147,7 +195,7 @@ export default function Establishments() {
         image: values.image,
         workingDays: workingDaysPayload,
       });
-      toast.success("Estabelecimento atualizado.");
+      toast.success("Negócio atualizado.");
       setSheetOpen(false);
       setEditingId(null);
       form.reset();
@@ -161,10 +209,10 @@ export default function Establishments() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Excluir este estabelecimento?")) return;
+    if (!window.confirm("Excluir este negócio?")) return;
     try {
       await deleteEstablishment(id);
-      toast.success("Estabelecimento excluído.");
+      toast.success("Negócio excluído.");
       load();
     } catch {
       toast.error("Erro ao excluir.");
@@ -189,7 +237,7 @@ export default function Establishments() {
         workingDays: buildWorkingDaysForm(establishment.workingDay),
       });
     } catch {
-      toast.error("Erro ao carregar dados do estabelecimento.");
+      toast.error("Erro ao carregar dados do negócio.");
       setSheetOpen(false);
       setEditingId(null);
     } finally {
@@ -202,16 +250,16 @@ export default function Establishments() {
       <div className="p-6">
         <div className="w-full flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Estabelecimentos</h1>
+            <h1 className="text-2xl font-semibold">Meu negócio</h1>
             <p className="text-muted-foreground mt-1">
-              Gerencie seus estabelecimentos.
+              Gerencie os dados do seu negócio.
             </p>
           </div>
 
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetContent side="right" className="overflow-y-auto p-6">
               <SheetHeader>
-                <SheetTitle>Editar estabelecimento</SheetTitle>
+                <SheetTitle>Editar meu negócio</SheetTitle>
               </SheetHeader>
               <Form {...form}>
                 <form
@@ -226,7 +274,7 @@ export default function Establishments() {
                         <FormLabel>Nome</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Nome do estabelecimento"
+                            placeholder="Nome do negócio"
                             {...field}
                           />
                         </FormControl>
@@ -345,9 +393,12 @@ export default function Establishments() {
                     />
                   )}
                   <div className="space-y-3">
-                    <p className="text-sm font-medium">Horário de atendimento</p>
+                    <p className="text-sm font-medium">
+                      Horário de atendimento
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      Marque os dias em que o estabelecimento abre e defina os horários.
+                      Marque os dias em que o negócio abre e defina os
+                      horários.
                     </p>
                     <div className="rounded-md border p-3 space-y-3">
                       {DAYS_OF_WEEK.map((day, i) => (
@@ -385,14 +436,18 @@ export default function Establishments() {
                                   <Input
                                     type="time"
                                     {...field}
-                                    disabled={!form.watch(`workingDays.${i}.open`)}
+                                    disabled={
+                                      !form.watch(`workingDays.${i}.open`)
+                                    }
                                     className="w-28"
                                   />
                                 </FormControl>
                               </FormItem>
                             )}
                           />
-                          <span className="text-muted-foreground text-sm">até</span>
+                          <span className="text-muted-foreground text-sm">
+                            até
+                          </span>
                           <FormField
                             control={form.control}
                             name={`workingDays.${i}.close_time`}
@@ -402,7 +457,9 @@ export default function Establishments() {
                                   <Input
                                     type="time"
                                     {...field}
-                                    disabled={!form.watch(`workingDays.${i}.open`)}
+                                    disabled={
+                                      !form.watch(`workingDays.${i}.open`)
+                                    }
                                     className="w-28"
                                   />
                                 </FormControl>
@@ -419,7 +476,9 @@ export default function Establishments() {
                     )}
                   </div>
                   {loadingEstablishment ? (
-                    <p className="text-sm text-muted-foreground">Carregando...</p>
+                    <p className="text-sm text-muted-foreground">
+                      Carregando...
+                    </p>
                   ) : (
                     <Button type="submit" className="w-full">
                       {editingId ? "Salvar" : "Criar"}
@@ -435,7 +494,7 @@ export default function Establishments() {
           <p className="text-muted-foreground mt-6">Carregando...</p>
         ) : establishments.length === 0 ? (
           <p className="text-muted-foreground mt-6">
-            Nenhum estabelecimento cadastrado.
+            Nenhum negócio cadastrado.
           </p>
         ) : (
           <div className="mt-6 rounded-md border overflow-x-auto">

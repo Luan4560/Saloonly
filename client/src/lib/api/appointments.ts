@@ -10,6 +10,10 @@ export interface Appointment {
   day_of_week: string;
   open_time: string;
   close_time: string;
+  user?: { name: string | null; email: string; phone: string | null };
+  guest_name?: string | null;
+  guest_email?: string | null;
+  guest_phone?: string | null;
   collaborator?: { id: string; name: string; email: string };
   establishment?: { id: string; name: string };
   services?: Array<{

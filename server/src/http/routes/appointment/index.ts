@@ -1,11 +1,16 @@
 import z from "zod";
-import { getAppointmentsQuerySchema } from "@/schemas/appointment.schema";
 import { FastifyTypedInstance } from "@/types";
+import {
+  getAppointmentsQuerySchema,
+  getAvailableSlotsQuerySchema,
+  getAvailableSlotsResponseSchema,
+} from "@/schemas/appointment.schema";
 
 import {
   createAppointment,
   getAppointmentById,
   getAppointments,
+  getAvailableSlots,
   updateAppointmentStatus,
 } from "@/http/controllers/appointment.controller";
 
@@ -19,6 +24,21 @@ export async function appointmentRoutes(app: FastifyTypedInstance) {
       schema: { querystring: getAppointmentsQuerySchema },
     },
     getAppointments,
+  );
+
+  app.get(
+    "/available-slots",
+    {
+      preHandler: [app.authenticate],
+      schema: {
+        tags: ["Appointment"],
+        description:
+          "List available time slots for an establishment on a date (optionally filtered by collaborator)",
+        querystring: getAvailableSlotsQuerySchema,
+        response: { 200: getAvailableSlotsResponseSchema },
+      },
+    },
+    getAvailableSlots,
   );
 
   app.get(

@@ -122,7 +122,7 @@ export default function Collaborators() {
   async function onSubmit(values: CollaboratorFormValues) {
     const establishmentId = establishments[0]?.id;
     if (!establishmentId && !editingId) {
-      toast.error("Cadastre um estabelecimento primeiro.");
+      toast.error("Cadastre um negócio primeiro.");
       return;
     }
     try {
@@ -190,7 +190,7 @@ export default function Collaborators() {
           <div>
             <h1 className="text-2xl font-semibold">Colaboradores</h1>
             <p className="text-muted-foreground mt-1">
-              Gerencie a equipe do estabelecimento.
+              Gerencie a equipe do negócio.
             </p>
           </div>
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>

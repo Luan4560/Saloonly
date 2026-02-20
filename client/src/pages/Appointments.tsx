@@ -61,9 +61,21 @@ function addMinutesToTime(time: string, minutes: number): string {
   return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
 }
 
+function capitalizeName(value: string): string {
+  if (!value || value === "-") return value;
+  return value
+    .trim()
+    .split(/\s+/)
+    .map(
+      (word) =>
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+    )
+    .join(" ");
+}
+
 const createFormSchema = z
   .object({
-    establishment_id: z.string().min(1, "Selecione o estabelecimento"),
+    establishment_id: z.string().min(1, "Selecione o negócio"),
     collaborator_id: z.string().min(1, "Selecione o colaborador"),
     service_ids: z
       .array(z.string())
@@ -228,7 +240,7 @@ export default function Appointments() {
                     name="establishment_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Estabelecimento</FormLabel>
+                        <FormLabel>Negócio</FormLabel>
                         <FormControl>
                           <select
                             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
@@ -413,7 +425,9 @@ export default function Appointments() {
                 <tr className="border-b bg-muted/50">
                   <th className="text-left p-3 font-medium">Data</th>
                   <th className="text-left p-3 font-medium">Horário</th>
-                  <th className="text-left p-3 font-medium">Estabelecimento</th>
+                  <th className="text-left p-3 font-medium">Nome do usuário</th>
+                  <th className="text-left p-3 font-medium">Telefone</th>
+                  <th className="text-left p-3 font-medium">Email</th>
                   <th className="text-left p-3 font-medium">Serviço</th>
                   <th className="text-left p-3 font-medium">Colaborador</th>
                   <th className="text-left p-3 font-medium">Status</th>
@@ -429,7 +443,15 @@ export default function Appointments() {
                     <td className="p-3">
                       {a.open_time} - {a.close_time}
                     </td>
-                    <td className="p-3">{a.establishment?.name ?? "-"}</td>
+                    <td className="p-3">
+                      {capitalizeName(a.user?.name ?? a.guest_name ?? "-")}
+                    </td>
+                    <td className="p-3">
+                      {a.user?.phone ?? a.guest_phone ?? "-"}
+                    </td>
+                    <td className="p-3">
+                      {a.user?.email ?? a.guest_email ?? "-"}
+                    </td>
                     <td className="p-3">
                       {a.services?.length
                         ? a.services

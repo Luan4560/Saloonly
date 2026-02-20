@@ -14,7 +14,7 @@ export default function Terms() {
         <h2 className="text-lg font-medium mt-6">Uso do serviço</h2>
         <p>
           O Saloonly é uma ferramenta de gestão de agendamentos para
-          estabelecimentos. Você é responsável pelos dados que cadastra e por
+          negócios. Você é responsável pelos dados que cadastra e por
           manter suas credenciais de acesso em sigilo.
         </p>
         <h2 className="text-lg font-medium mt-6">Obrigações do usuário</h2>

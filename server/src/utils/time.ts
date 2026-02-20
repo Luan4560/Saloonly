@@ -40,3 +40,33 @@ export function isSlotWithinRange(
   const rangeEnd = timeToMinutes(rangeClose);
   return slotStart >= rangeStart && slotEnd <= rangeEnd;
 }
+
+/**
+ * Format minutes since midnight to "HH:mm".
+ */
+export function minutesToTime(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+/**
+ * Generate consecutive time slots of a given duration within [rangeOpen, rangeClose].
+ * Returns array of { open_time, close_time } in "HH:mm" format.
+ */
+export function generateSlotsInRange(
+  rangeOpen: string,
+  rangeClose: string,
+  slotDurationMinutes: number,
+): { open_time: string; close_time: string }[] {
+  const start = timeToMinutes(rangeOpen);
+  const end = timeToMinutes(rangeClose);
+  const slots: { open_time: string; close_time: string }[] = [];
+  for (let t = start; t + slotDurationMinutes <= end; t += slotDurationMinutes) {
+    slots.push({
+      open_time: minutesToTime(t),
+      close_time: minutesToTime(t + slotDurationMinutes),
+    });
+  }
+  return slots;
+}

@@ -5,7 +5,8 @@ import {
   BrowserRouter as Router,
   Routes,
 } from "react-router-dom";
-import { ProtectedRoute } from "@/components/protectedRoutes";
+import { ProtectedRoute, ClientProtectedRoute } from "@/components/protectedRoutes";
+import { PublicLayout } from "@/components/layout";
 
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const SignUp = lazy(() => import("@/pages/SignUp"));
@@ -22,6 +23,14 @@ const Appointments = lazy(() => import("@/pages/Appointments"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const Privacy = lazy(() => import("@/pages/Privacy"));
 const Terms = lazy(() => import("@/pages/Terms"));
+const Search = lazy(() => import("@/pages/client/Search"));
+const EstablishmentDetail = lazy(
+  () => import("@/pages/client/EstablishmentDetail")
+);
+const BookingFlow = lazy(() => import("@/pages/client/BookingFlow"));
+const ClientLogin = lazy(() => import("@/pages/client/ClientLogin"));
+const ClientSignUp = lazy(() => import("@/pages/client/ClientSignUp"));
+const MyAppointments = lazy(() => import("@/pages/client/MyAppointments"));
 
 export default function AppRoutes() {
   return (
@@ -40,6 +49,20 @@ export default function AppRoutes() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
+
+          {/* Public client routes (PublicLayout: no sidebar) */}
+          <Route element={<PublicLayout />}>
+            <Route path="/booking" element={<Search />} />
+            <Route path="/booking/:id" element={<EstablishmentDetail />} />
+            <Route path="/booking/:id/book" element={<BookingFlow />} />
+            <Route path="/client/login" element={<ClientLogin />} />
+            <Route path="/client/signup" element={<ClientSignUp />} />
+            {/* Client protected routes (require client auth) */}
+            <Route element={<ClientProtectedRoute />}>
+              <Route path="/my" element={<Navigate to="/my/appointments" replace />} />
+              <Route path="/my/appointments" element={<MyAppointments />} />
+            </Route>
+          </Route>
 
           <Route element={<ProtectedRoute />}>
             <Route path="/register-establishment" element={<RegisterEstablishment />} />

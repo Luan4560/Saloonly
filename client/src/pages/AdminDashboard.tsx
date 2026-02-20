@@ -7,8 +7,8 @@ import { useEffect, useState } from "react";
 
 const cards = [
   {
-    title: "Estabelecimentos",
-    description: "Cadastre e edite seus estabelecimentos",
+    title: "Meu negócio",
+    description: "Edite os dados do seu negócio",
     href: "/establishments",
     icon: Building2,
   },

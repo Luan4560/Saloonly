@@ -2,6 +2,9 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "../ui/sidebar";
 import { AppSidebar } from "../AppSidebar";
+import { PublicLayout } from "./PublicLayout";
+
+export { PublicLayout };
 
 interface LayoutProps {
   children: ReactNode;

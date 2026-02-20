@@ -13,6 +13,8 @@ import { collaboratorRoutes } from "@/http/routes/collaborator";
 import { servicesRoutes } from "@/http/routes/service";
 import { appointmentRoutes } from "@/http/routes/appointment";
 import { healthRoutes } from "@/http/routes/health";
+import { publicRoutes } from "@/http/routes/public";
+import { clientRoutes } from "@/http/routes/client";
 import { parseData } from "@/middlewares/parseData";
 import { registerSecurityHeaders } from "@/middlewares/securityHeaders";
 import { globalErrorHandler } from "@/lib/error-handler";
@@ -56,10 +58,18 @@ app.register(fCookie, {
   hook: "preHandler",
 });
 
+function getTokenFromRequest(req: FastifyRequest): string | undefined {
+  const fromCookie = req.cookies?.access_token;
+  if (fromCookie) return fromCookie;
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) return authHeader.slice(7);
+  return undefined;
+}
+
 app.decorate(
   "authenticate",
   async (req: FastifyRequest, reply: FastifyReply) => {
-    const token = req.cookies.access_token;
+    const token = getTokenFromRequest(req);
 
     if (!token) {
       return reply.code(401).send({ message: "Authorization required" });
@@ -70,6 +80,20 @@ app.decorate(
       req.user = decoded;
     } catch {
       return reply.code(401).send({ message: "Invalid or expired token" });
+    }
+  },
+);
+
+app.decorate(
+  "optionalAuthenticate",
+  async (req: FastifyRequest, _reply: FastifyReply) => {
+    const token = getTokenFromRequest(req);
+    if (!token) return;
+    try {
+      const decoded = req.jwt.verify<FastifyJWT["user"]>(token);
+      req.user = decoded;
+    } catch {
+      // Leave req.user undefined
     }
   },
 );
@@ -92,6 +116,9 @@ app.register(fastifySwaggerUi, {
 app.setErrorHandler(globalErrorHandler);
 
 app.register(healthRoutes);
+
+app.register(publicRoutes, { prefix: "/api/public/establishments" });
+app.register(clientRoutes, { prefix: "/api/client" });
 
 app.register(userRoutes, { prefix: "/api/admin/users" });
 app.register(establishmentRoutes, { prefix: "/api/admin/establishments" });

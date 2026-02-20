@@ -171,6 +171,7 @@ export async function registerEstablishment(
         path: "/",
         httpOnly: true,
         secure: env.NODE_ENV === "production",
+        sameSite: "lax",
       });
       accessToken = token;
       userResponse = {
@@ -211,19 +212,20 @@ export async function getEstablishments(
   try {
     const query = paginationQuerySchema.parse(request.query ?? {});
     const { skip, take } = paginationSkipTake(query);
+    const isPlatformAdmin = request.user?.role === "ADMIN";
     let establishmentId: string | undefined = request.user?.establishment_id;
-    if (request.user?.id) {
+    if (request.user?.id && !isPlatformAdmin) {
       const user = await prisma.user.findUnique({
         where: { id: request.user.id },
         select: { establishment_id: true },
       });
       if (user?.establishment_id) establishmentId = user.establishment_id;
     }
-    if (!establishmentId) {
+    if (!isPlatformAdmin && !establishmentId) {
       return reply.code(200).send([]);
     }
     const establishments = await prisma.establishment.findMany({
-      where: { id: establishmentId },
+      where: isPlatformAdmin ? {} : { id: establishmentId },
       include: {
         Collaborator: true,
         Service: true,
@@ -269,7 +271,7 @@ export async function getEstablishmentById(
     include: {
       Collaborator: true,
       Service: true,
-      WorkingDay: true,
+      WorkingDay: { where: { collaborator_id: null } },
       SpecialDate: true,
     },
   });

@@ -126,7 +126,7 @@ export default function SignUp() {
           )}
 
           <p className="text-center text-xs text-muted-foreground">
-            Após criar a conta, faça login e cadastre seu estabelecimento.
+            Após criar a conta, faça login e cadastre seu negócio.
           </p>
           <p className="text-center text-sm text-muted-foreground">
             Já tem uma conta?{" "}

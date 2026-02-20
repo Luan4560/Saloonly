@@ -1,15 +1,17 @@
 import { getMe } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/authStore";
+import { useClientAuthStore } from "@/stores/clientAuthStore";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, Navigate, Outlet } from "react-router-dom";
 
 export const ProtectedRoute = () => {
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const isAuthenticated = useAuthStore((state) => !!state.accessToken);
   const establishmentId = useAuthStore((state) => state.establishmentId);
   const setEstablishmentId = useAuthStore((state) => state.setEstablishmentId);
   const location = useLocation();
   const hasCheckedMeRef = useRef(false);
-  const [isSyncingMe, setIsSyncingMe] = useState(false);
+  const [syncDone, setSyncDone] = useState(false);
 
   const needsSync =
     isAuthenticated &&
@@ -19,7 +21,6 @@ export const ProtectedRoute = () => {
   useEffect(() => {
     if (!needsSync || hasCheckedMeRef.current) return;
     hasCheckedMeRef.current = true;
-    setIsSyncingMe(true);
     getMe()
       .then((user) => {
         if (user.establishment_id) {
@@ -27,10 +28,27 @@ export const ProtectedRoute = () => {
         }
       })
       .finally(() => {
-        setIsSyncingMe(false);
+        setSyncDone(true);
       });
   }, [needsSync, setEstablishmentId]);
 
+  const setHasHydrated = useAuthStore((state) => state.setHasHydrated);
+  useEffect(() => {
+    const fallback = setTimeout(() => {
+      if (!useAuthStore.getState().hasHydrated) {
+        setHasHydrated(true);
+      }
+    }, 500);
+    return () => clearTimeout(fallback);
+  }, [setHasHydrated]);
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
@@ -40,7 +58,7 @@ export const ProtectedRoute = () => {
   if (location.pathname === "/register-establishment") {
     return <Outlet />;
   }
-  if (isSyncingMe) {
+  if (needsSync && !syncDone) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-muted-foreground">Carregando...</p>
@@ -48,4 +66,17 @@ export const ProtectedRoute = () => {
     );
   }
   return <Navigate to="/register-establishment" replace />;
+};
+
+export const ClientProtectedRoute = () => {
+  const isAuthenticated = useClientAuthStore((state) => !!state.accessToken);
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    const redirect = encodeURIComponent(location.pathname + location.search);
+    return (
+      <Navigate to={`/client/login?redirect=${redirect}`} replace />
+    );
+  }
+  return <Outlet />;
 };

@@ -100,7 +100,7 @@ model PasswordResetToken {
 
 model Appointment {
   id               String        @id @default(uuid())
-  user_id          String
+  user_id          String?
   collaborator_id  String
   establishment_id String
   status           Status        @default(PENDING)
@@ -110,7 +110,10 @@ model Appointment {
   day_of_week      String
   open_time        String
   close_time       String
-  user             User          @relation(fields: [user_id], references: [id])
+  guest_name       String?
+  guest_email      String?
+  guest_phone      String?
+  user             User?         @relation(fields: [user_id], references: [id])
   collaborator     Collaborator  @relation(fields: [collaborator_id], references: [id])
   establishment    Establishment @relation(fields: [establishment_id], references: [id])
   services         Service[]

@@ -26,7 +26,7 @@ import {
 
 const allItems = [
   { title: "Início", url: "/dashboard", icon: Home },
-  { title: "Estabelecimentos", url: "/establishments", icon: Building2 },
+  { title: "Meu negócio", url: "/establishments", icon: Building2 },
   { title: "Serviços", url: "/services", icon: Scissors },
   { title: "Colaboradores", url: "/collaborators", icon: Users },
   { title: "Agendamentos", url: "/appointments", icon: Calendar },

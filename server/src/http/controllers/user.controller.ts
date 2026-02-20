@@ -112,6 +112,7 @@ export async function login(
     path: "/",
     httpOnly: true,
     secure: env.NODE_ENV === "production",
+    sameSite: "lax",
   });
 
   const userResponse = {

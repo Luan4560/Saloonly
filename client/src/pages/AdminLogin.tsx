@@ -105,7 +105,7 @@ export default function AdminLogin() {
                 </Link>
               </div>
               <p className="text-xs text-muted-foreground">
-                Após o primeiro login, você cadastrará seu estabelecimento.
+                Após o primeiro login, você cadastrará seu negócio.
               </p>
             </div>
           </form>

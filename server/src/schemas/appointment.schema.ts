@@ -51,3 +51,20 @@ export const getAppointmentsQuerySchema = z
     establishment_id: z.string().uuid().optional(),
   })
   .merge(paginationQuerySchema);
+
+export const getAvailableSlotsQuerySchema = z.object({
+  establishment_id: z.string().uuid(),
+  date: z.coerce.date(),
+  collaborator_id: z.string().uuid().optional(),
+  slot_duration_minutes: z.coerce.number().int().min(5).max(120).default(30),
+});
+
+export const availableSlotSchema = z.object({
+  open_time: z.string(),
+  close_time: z.string(),
+});
+
+export const getAvailableSlotsResponseSchema = z.object({
+  date: z.string(),
+  slots: z.array(availableSlotSchema),
+});

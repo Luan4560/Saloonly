@@ -17,13 +17,13 @@ export default function Privacy() {
         <h2 className="text-lg font-medium mt-6">Dados coletados</h2>
         <p>
           Coletamos nome, e-mail, telefone e senha (criptografada) dos usuários
-          do painel; dados do estabelecimento (nome, endereço, contato, imagem);
+          do painel; dados do negócio (nome, endereço, contato, imagem);
           dados de colaboradores e de agendamentos (cliente, colaborador,
           serviço, data e horário).
         </p>
         <h2 className="text-lg font-medium mt-6">Finalidade</h2>
         <p>
-          Os dados são usados para autenticação, cadastro de estabelecimentos,
+          Os dados são usados para autenticação, cadastro de negócios,
           serviços e colaboradores, e para registrar e exibir agendamentos.
         </p>
         <h2 className="text-lg font-medium mt-6">Compartilhamento</h2>

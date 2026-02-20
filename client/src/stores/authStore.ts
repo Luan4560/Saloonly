@@ -21,12 +21,14 @@ function getEstablishmentIdFromToken(token: string): string | null {
 interface AuthState {
   accessToken: string | null;
   establishmentId: string | null;
+  hasHydrated: boolean;
   isAuthenticated: boolean;
   loading: boolean;
   error: ApiError | null;
   login: (token: string, user?: AuthUser | null) => void;
   logout: () => void;
   setEstablishmentId: (id: string | null) => void;
+  setHasHydrated: (value: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: ApiError) => void;
 }
@@ -44,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       accessToken: null,
       establishmentId: null,
+      hasHydrated: false,
       loading: false,
       error: null,
       login: (token: string, user?: AuthUser | null) =>
@@ -54,6 +57,7 @@ export const useAuthStore = create<AuthState>()(
         }),
       logout: () => set({ accessToken: null, establishmentId: null }),
       setEstablishmentId: (id: string | null) => set({ establishmentId: id }),
+      setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
       setLoading: (loading: boolean) => set({ loading }),
       setError: (error: ApiError) => set({ error }),
       get isAuthenticated() {
@@ -67,6 +71,7 @@ export const useAuthStore = create<AuthState>()(
         establishmentId: state.establishmentId,
       }),
       onRehydrateStorage: () => (state) => {
+        useAuthStore.getState().setHasHydrated(true);
         if (state?.accessToken && state.establishmentId == null) {
           const id = getEstablishmentIdFromToken(state.accessToken);
           if (id) useAuthStore.setState({ establishmentId: id });

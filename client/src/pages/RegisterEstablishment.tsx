@@ -112,11 +112,11 @@ export default function RegisterEstablishment() {
       if (data.accessToken && data.user) {
         useAuthStore.getState().login(data.accessToken, data.user);
         if (data.id) useAuthStore.getState().setEstablishmentId(data.id);
-        toast.success("Estabelecimento cadastrado com sucesso!");
+        toast.success("Negócio cadastrado com sucesso!");
         navigate("/dashboard", { replace: true });
       } else if (data.id) {
         useAuthStore.getState().setEstablishmentId(data.id);
-        toast.success("Estabelecimento cadastrado com sucesso!");
+        toast.success("Negócio cadastrado com sucesso!");
         navigate("/dashboard", { replace: true });
       }
     } catch (e: unknown) {
@@ -125,7 +125,7 @@ export default function RegisterEstablishment() {
       };
       if (err.response?.status === 403) {
         toast.error(
-          "Sua conta já está vinculada a um estabelecimento. Cada conta pode ter apenas um."
+          "Sua conta já está vinculada a um negócio. Cada conta pode ter apenas um."
         );
       } else {
         toast.error(err.response?.data?.message ?? "Erro ao cadastrar.");
@@ -144,7 +144,7 @@ export default function RegisterEstablishment() {
           height={96}
         />
         <h1 className="text-2xl font-semibold text-center mb-1">
-          Cadastre seu estabelecimento
+          Cadastre seu negócio
         </h1>
         <p className="text-muted-foreground text-center mb-6">
           Preencha os dados abaixo para continuar.
@@ -162,7 +162,7 @@ export default function RegisterEstablishment() {
                   <FormLabel>Nome</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Nome do estabelecimento"
+                      placeholder="Nome do negócio"
                       {...field}
                     />
                   </FormControl>
@@ -240,7 +240,7 @@ export default function RegisterEstablishment() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha do estabelecimento</FormLabel>
+                  <FormLabel>Senha do negócio</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
@@ -255,7 +255,7 @@ export default function RegisterEstablishment() {
             <div className="space-y-3">
               <p className="text-sm font-medium">Horário de atendimento</p>
               <p className="text-xs text-muted-foreground">
-                Marque os dias em que o estabelecimento abre e defina os horários.
+                Marque os dias em que o negócio abre e defina os horários.
               </p>
               <div className="rounded-md border p-3 space-y-3">
                 {DAYS_OF_WEEK.map((day, i) => (

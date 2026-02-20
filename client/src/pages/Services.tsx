@@ -83,7 +83,7 @@ export default function Services() {
   async function onSubmit(values: ServiceFormValues) {
     const establishmentId = establishments[0]?.id;
     if (!establishmentId && !editingId) {
-      toast.error("Cadastre um estabelecimento primeiro.");
+      toast.error("Cadastre um negócio primeiro.");
       return;
     }
     try {
@@ -246,7 +246,7 @@ export default function Services() {
           <p className="text-muted-foreground mt-6">Carregando...</p>
         ) : services.length === 0 ? (
           <p className="text-muted-foreground mt-6">
-            Nenhum serviço cadastrado. Cadastre um estabelecimento e adicione
+            Nenhum serviço cadastrado. Cadastre um negócio e adicione
             serviços ou use o botão acima.
           </p>
         ) : (
